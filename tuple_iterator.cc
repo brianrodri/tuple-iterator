@@ -94,13 +94,13 @@ class TupleIterator {
     }
 
     constexpr reference operator*() {
-        return std::visit([this](auto i) constexpr {
+        return std::visit([this](auto i) {
             return reference(std::reference_wrapper(std::get<i()>(*t_ptr_)));
         }, *i_opt_);
     }
 
     constexpr reference operator*() const {
-        return std::visit([this](auto i) constexpr {
+        return std::visit([this](auto i) {
             return reference(std::reference_wrapper(std::get<i()>(*t_ptr_)));
         }, *i_opt_);
     }
@@ -137,7 +137,7 @@ class TupleIterator {
 
     constexpr void increment_index() {
         if (i_opt_ != std::nullopt) {
-            i_opt_ = std::visit([](auto i) constexpr {
+            i_opt_ = std::visit([](auto i) {
                 if constexpr (i + 1 < std::tuple_size_v<T>) {
                     return index_variant_opt(detail::index_c<i + 1>);
                 } else {
@@ -151,7 +151,7 @@ class TupleIterator {
         if (i_opt_ == std::nullopt) {
             i_opt_ = detail::index_c<std::tuple_size_v<T> - 1>;
         } else {
-            i_opt_ = std::visit([](auto i) constexpr {
+            i_opt_ = std::visit([](auto i) {
                 if constexpr (i > 0) {
                     return index_variant_opt(detail::index_c<i - 1>);
                 } else {
