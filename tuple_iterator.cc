@@ -184,11 +184,13 @@ constexpr TupleIterator<T> tuple_end(T& tup) {
 
 int main() {
     using namespace std::string_literals;
-
-    std::tuple t(1, 3.14, "olive"s);  // "olive" is my favorite cat :)
     using tuple_ext::tuple_begin;
     using tuple_ext::tuple_end;
 
+    std::tuple t(1, 3.14, "olive"s);  // "olive" is my favorite cat :)
+
+    // NOTE: We need to use .get() because we can't create a variant of
+    // references. Instead, we must create a variant of std::reference_wrapper.
     auto element_printer = [](const auto& e) { std::cout << e.get() << '\n'; };
 
     std::cout << "# Forward Iteration\n";
