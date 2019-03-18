@@ -89,7 +89,7 @@ class TupleIterator {
 
     constexpr TupleIterator operator--(int _) {
         TupleIterator next_iter = *this;
-        decrement_index();
+        ++(*this);
         return next_iter;
     }
 
