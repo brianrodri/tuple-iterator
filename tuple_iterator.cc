@@ -130,8 +130,9 @@ class TupleIterator {
     }
 
   private:
-    constexpr TupleIterator(T& t, index_variant_opt i = {})
-        : t_ptr_(&t), i_opt_(i) {};
+    constexpr TupleIterator(T& t, index_variant_opt i) : t_ptr_(&t), i_opt_(i) {
+    };
+
     template <typename U> friend constexpr TupleIterator<U> tuple_begin(U& tup);
     template <typename U> friend constexpr TupleIterator<U> tuple_end(U& tup);
 
@@ -176,7 +177,7 @@ constexpr TupleIterator<T> tuple_begin(T& tup) {
 
 template <typename T>
 constexpr TupleIterator<T> tuple_end(T& tup) {
-    return {tup};
+    return {tup, std::nullopt};
 }
 
 }  // namespace tuple_ext
