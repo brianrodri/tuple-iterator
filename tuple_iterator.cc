@@ -132,8 +132,8 @@ class TupleIterator {
   private:
     constexpr TupleIterator(T& t, index_variant_opt i = {})
         : t_ptr_(&t), i_opt_(i) {};
-    template <typename U> friend TupleIterator<U> tuple_begin(U& tup);
-    template <typename U> friend TupleIterator<U> tuple_end(U& tup);
+    template <typename U> friend constexpr TupleIterator<U> tuple_begin(U& tup);
+    template <typename U> friend constexpr TupleIterator<U> tuple_end(U& tup);
 
     constexpr void increment_index() {
         if (i_opt_ != std::nullopt) {
@@ -170,10 +170,14 @@ class TupleIterator {
 };
 
 template <typename T>
-TupleIterator<T> tuple_begin(T& tup) { return {tup, detail::index_c<0>}; }
+constexpr TupleIterator<T> tuple_begin(T& tup) {
+    return {tup, detail::index_c<0>};
+}
 
 template <typename T>
-TupleIterator<T> tuple_end(T& tup) { return {tup}; }
+constexpr TupleIterator<T> tuple_end(T& tup) {
+    return {tup};
+}
 
 }  // namespace tuple_ext
 
@@ -209,6 +213,11 @@ int main() {
 
     std::cout << "# Tuple Iterator size\n";
     std::cout << sizeof(tuple_begin(t)) << '\n';
+
+    std::cout << "# Constexpr context\n";
+    constexpr bool is_equal = ++(++(++tuple_begin(t))) == tuple_end(t);
+    static_assert(is_equal == true);
+    std::cout << (is_equal ? "true" : "false") << '\n';
 
     return 0;
 }
