@@ -1,6 +1,6 @@
-#include "tuple_iterator.h"
-#include "gtest/gtest.h"
 #include <iterator>
+#include "gtest/gtest.h"
+#include "tuple_iterator.h"
 
 using tuple_ext::TupleIterator;
 using tuple_ext::TupleRange;
