@@ -52,7 +52,7 @@ template <typename T> class TupleRange;
 
 template <typename T>
 class TupleIterator {
-    using index_variant_opt =
+    using IndexVariantOpt =
         std::optional<typename detail::IterTypeTraitsImpl<T>::IndexVariant>;
 
   public:
@@ -75,7 +75,7 @@ class TupleIterator {
     }
 
     constexpr TupleIterator& operator++() {
-        increment_index();
+        IncrementIndex();
         return *this;
     }
 
@@ -86,7 +86,7 @@ class TupleIterator {
     }
 
     constexpr TupleIterator& operator--() {
-        decrement_index();
+        DecrementIndex();
         return *this;
     }
 
@@ -121,7 +121,7 @@ class TupleIterator {
     // because it is required by std::distance.
 
     constexpr difference_type operator-(const TupleIterator& rhs) const {
-        return get_index() - rhs.get_index();
+        return GetIndex() - rhs.GetIndex();
     }
 
     constexpr bool operator==(const TupleIterator& rhs) const {
@@ -133,44 +133,50 @@ class TupleIterator {
     }
 
   private:
-    constexpr TupleIterator(T& t, index_variant_opt i)
+    constexpr TupleIterator(T& t, IndexVariantOpt i = {})
         : tuple_ptr_(&t), index_opt_(i) {};
 
     // Provides interface for creating tuple iterators.
     friend class TupleRange<T>;
 
-
-    constexpr void increment_index() {
-        if (index_opt_ != std::nullopt) {
+    constexpr void IncrementIndex() {
+        if (!IsEnd()) {
             index_opt_ = std::visit([](auto i) {
                 if constexpr (i + 1 < std::tuple_size_v<T>) {
-                    return index_variant_opt(detail::index_c<i + 1>);
+                    return IndexVariantOpt(detail::index_c<i + 1>);
                 } else {
-                    return index_variant_opt(std::nullopt);
+                    return IndexVariantOpt();
                 }
             }, *index_opt_);
         }
     }
 
-    constexpr void decrement_index() {
-        if (index_opt_ == std::nullopt) {
-            index_opt_ = detail::index_c<std::tuple_size_v<T> - 1>;
-        } else {
+    constexpr void DecrementIndex() {
+        if (!IsEnd()) {
             index_opt_ = std::visit([](auto i) {
                 if constexpr (i > 0) {
-                    return index_variant_opt(detail::index_c<i - 1>);
+                    return IndexVariantOpt(detail::index_c<i - 1>);
                 } else {
-                    return index_variant_opt(detail::index_c<0>);
+                    return IndexVariantOpt(detail::index_c<0>);
                 }
             }, *index_opt_);
+        } else {
+            // Can iterate backwards from end() when target tuple is non-empty.
+            if constexpr (0 < std::tuple_size_v<T>) {
+                index_opt_ = detail::index_c<std::tuple_size_v<T> - 1>;
+            }
         }
     }
 
-    constexpr ptrdiff_t get_index() const {
-        return index_opt_ ? index_opt_->index() : std::tuple_size_v<T>;
+    constexpr ptrdiff_t GetIndex() const {
+        return IsEnd() ? std::tuple_size_v<T> : index_opt_->index();
     }
 
-    index_variant_opt index_opt_;
+    constexpr bool IsEnd() const {
+        return index_opt_ == std::nullopt;
+    }
+
+    IndexVariantOpt index_opt_;
     T* tuple_ptr_;
 };
 
@@ -189,7 +195,7 @@ class TupleRange {
     }
 
     constexpr TupleIterator<T> end() const {
-        return {*tuple_ptr_, std::nullopt};
+        return {*tuple_ptr_};
     }
 
   private:
