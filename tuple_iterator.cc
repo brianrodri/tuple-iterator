@@ -10,8 +10,11 @@ namespace detail {
 
 // Helper aliases to help cut down boilerplate when working with compile-time
 // index values.
-template <size_t I> using index_t = std::integral_constant<size_t, I>;
-template <size_t I> constexpr auto index_c = index_t<I>{};
+template <size_t I>
+using index_t = std::integral_constant<size_t, I>;
+
+template <size_t I>
+constexpr auto index_c = index_t<I>{};
 
 // Exposes types required by TupleIterator to be standard-compliant.
 //
@@ -23,8 +26,11 @@ template <size_t I> constexpr auto index_c = index_t<I>{};
 //
 // std::tuple defines these overloads thanks to the standard, but you can create
 // overloads for custom classes as necessary.
-template <typename Tup> struct IterTypeTraitsImpl;
-template <typename... T> struct IterTypeTraitsImpl<std::tuple<T...>> {
+template <typename Tup>
+struct IterTypeTraitsImpl;
+
+template <typename... T>
+struct IterTypeTraitsImpl<std::tuple<T...>> {
   private:
     // Returns a variant of compile-time index values from the provided sequence
     // of index values.
@@ -38,6 +44,7 @@ template <typename... T> struct IterTypeTraitsImpl<std::tuple<T...>> {
     using PointerType = std::variant<T*...>;
     using ReferenceType = std::variant<std::reference_wrapper<T>...>;
     using ValueType = ReferenceType;
+    using DifferenceType = std::ptrdiff_t;
 
     // An implementation detail for remembering the current index which a tuple
     // iterator is pointing to.
@@ -48,7 +55,8 @@ template <typename... T> struct IterTypeTraitsImpl<std::tuple<T...>> {
 }  // namespace detail
 
 // Provides interface for creating tuple iterators.
-template <typename T> class TupleRange;
+template <typename T>
+class TupleRange;
 
 template <typename T>
 class TupleIterator {
@@ -60,9 +68,10 @@ class TupleIterator {
     using value_type = typename detail::IterTypeTraitsImpl<T>::ValueType;
     using reference = typename detail::IterTypeTraitsImpl<T>::ReferenceType;
     using pointer = typename detail::IterTypeTraitsImpl<T>::PointerType;
-    using difference_type = ptrdiff_t;
+    using difference_type =
+        typename detail::IterTypeTraitsImpl<T>::DifferenceType;
 
-    // NOTE: This can be upgraded to random-access, but more work is required :)
+    // TODO: Investigate making this iterator random-access.
     using iterator_category = std::bidirectional_iterator_tag;
 
     TupleIterator(const TupleIterator<T>& src)
@@ -80,7 +89,7 @@ class TupleIterator {
     }
 
     constexpr TupleIterator operator++(int _) {
-        TupleIterator next_iter = *this;
+        TupleIterator next_iter{*this};
         ++(*this);
         return next_iter;
     }
@@ -91,20 +100,20 @@ class TupleIterator {
     }
 
     constexpr TupleIterator operator--(int _) {
-        TupleIterator next_iter = *this;
+        TupleIterator next_iter{*this};
         --(*this);
         return next_iter;
     }
 
     constexpr reference operator*() {
-        return std::visit([this](auto i) {
-            return reference(std::reference_wrapper(std::get<i>(*tuple_ptr_)));
+        return std::visit([this](auto i) -> reference {
+            return {std::ref(std::get<i>(*tuple_ptr_))};
         }, *index_opt_);
     }
 
     constexpr reference operator*() const {
-        return std::visit([this](auto i) {
-            return reference(std::reference_wrapper(std::get<i>(*tuple_ptr_)));
+        return std::visit([this](auto i) -> reference {
+            return {std::cref(std::get<i>(*tuple_ptr_))};
         }, *index_opt_);
     }
 
@@ -141,30 +150,30 @@ class TupleIterator {
 
     constexpr void IncrementIndex() {
         if (!IsEnd()) {
-            index_opt_ = std::visit([](auto i) {
+            index_opt_ = std::visit([](auto i) -> IndexVariantOpt {
                 if constexpr (i + 1 < std::tuple_size_v<T>) {
-                    return IndexVariantOpt(detail::index_c<i + 1>);
+                    return {detail::index_c<i + 1>};
                 } else {
-                    return IndexVariantOpt();
+                    return {};
                 }
             }, *index_opt_);
         }
     }
 
     constexpr void DecrementIndex() {
-        if (!IsEnd()) {
-            index_opt_ = std::visit([](auto i) {
-                if constexpr (i > 0) {
-                    return IndexVariantOpt(detail::index_c<i - 1>);
-                } else {
-                    return IndexVariantOpt(detail::index_c<0>);
-                }
-            }, *index_opt_);
-        } else {
+        if (IsEnd()) {
             // Can iterate backwards from end() when target tuple is non-empty.
             if constexpr (0 < std::tuple_size_v<T>) {
                 index_opt_ = detail::index_c<std::tuple_size_v<T> - 1>;
             }
+        } else {
+            index_opt_ = std::visit([](auto i) -> IndexVariantOpt {
+                if constexpr (i > 0) {
+                    return {detail::index_c<i - 1>};
+                } else {
+                    return {detail::index_c<0>};
+                }
+            }, *index_opt_);
         }
     }
 
@@ -172,12 +181,10 @@ class TupleIterator {
         return IsEnd() ? std::tuple_size_v<T> : index_opt_->index();
     }
 
-    constexpr bool IsEnd() const {
-        return index_opt_ == std::nullopt;
-    }
+    constexpr bool IsEnd() const { return index_opt_ == std::nullopt; }
 
-    IndexVariantOpt index_opt_;
     T* tuple_ptr_;
+    IndexVariantOpt index_opt_;
 };
 
 // Provides interface for creating tuple iterators.
@@ -213,7 +220,9 @@ int main() {
 
     // NOTE: We need to use .get() because we can't create a variant of
     // references. Instead, we must create a variant of std::reference_wrapper.
-    auto element_printer = [](const auto& e) { std::cout << e.get() << '\n'; };
+    auto element_printer = [](const auto& e) {
+        std::cout << '\t' << e.get() << '\n';
+    };
 
     std::cout << "# Forward Iteration\n";
     auto b = t_rng.begin();
@@ -234,13 +243,14 @@ int main() {
         });
 
     std::cout << "# Tuple Iterator size\n";
-    std::cout << sizeof(t_rng.begin()) << '\n';
+    std::cout << "\tsizeof(begin_iter) = " << sizeof(t_rng.begin()) << '\n';
+    std::cout << "\tsizeof(end_iter) = " << sizeof(t_rng.end()) << '\n';
 
     std::cout << "# Constexpr context\n";
     constexpr bool is_equal =
         ++(++(++TupleRange(t).begin())) == TupleRange(t).end();
     static_assert(is_equal == true);
-    std::cout << std::boolalpha << is_equal << '\n';
+    std::cout << '\t' << std::boolalpha << is_equal << '\n';
 
     return 0;
 }
