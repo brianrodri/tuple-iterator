@@ -47,7 +47,7 @@ template <typename... T> struct IterTypeTraitsImpl<std::tuple<T...>> {
 
 }  // namespace detail
 
-// Forward declaration of the range-interface for tuples.
+// Provides interface for creating tuple iterators.
 template <typename T> class TupleRange;
 
 template <typename T>
