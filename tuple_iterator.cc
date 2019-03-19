@@ -98,13 +98,13 @@ class TupleIterator {
 
     constexpr reference operator*() {
         return std::visit([this](auto i) {
-            return reference(std::reference_wrapper(std::get<i()>(*tuple_ptr_)));
+            return reference(std::reference_wrapper(std::get<i>(*tuple_ptr_)));
         }, *index_opt_);
     }
 
     constexpr reference operator*() const {
         return std::visit([this](auto i) {
-            return reference(std::reference_wrapper(std::get<i()>(*tuple_ptr_)));
+            return reference(std::reference_wrapper(std::get<i>(*tuple_ptr_)));
         }, *index_opt_);
     }
 
@@ -136,6 +136,7 @@ class TupleIterator {
     constexpr TupleIterator(T& t, index_variant_opt i)
         : tuple_ptr_(&t), index_opt_(i) {};
 
+    // Provides interface for creating tuple iterators.
     friend class TupleRange<T>;
 
 
@@ -173,6 +174,7 @@ class TupleIterator {
     T* tuple_ptr_;
 };
 
+// Provides interface for creating tuple iterators.
 template <typename T>
 class TupleRange {
   public:
