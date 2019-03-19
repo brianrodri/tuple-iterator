@@ -47,6 +47,9 @@ template <typename... T> struct IterTypeTraitsImpl<std::tuple<T...>> {
 
 }  // namespace detail
 
+// Forward declaration of the range-interface for tuples.
+template <typename T> class TupleRange;
+
 template <typename T>
 class TupleIterator {
     using index_variant_opt =
@@ -62,12 +65,12 @@ class TupleIterator {
     // NOTE: This can be upgraded to random-access, but more work is required :)
     using iterator_category = std::bidirectional_iterator_tag;
 
-    TupleIterator(const TupleIterator& src)
-        : t_ptr_(src.t_ptr_), i_opt_(src.i_opt_) {}
+    TupleIterator(const TupleIterator<T>& src)
+        : tuple_ptr_(src.tuple_ptr_), index_opt_(src.index_opt_) {}
 
-    TupleIterator& operator=(const TupleIterator& src) {
-        t_ptr_ = src.t_ptr_;
-        i_opt_ = src.i_opt_;
+    TupleIterator& operator=(const TupleIterator<T>& src) {
+        tuple_ptr_ = src.tuple_ptr_;
+        index_opt_ = src.index_opt_;
         return *this;
     }
 
@@ -95,14 +98,14 @@ class TupleIterator {
 
     constexpr reference operator*() {
         return std::visit([this](auto i) {
-            return reference(std::reference_wrapper(std::get<i()>(*t_ptr_)));
-        }, *i_opt_);
+            return reference(std::reference_wrapper(std::get<i()>(*tuple_ptr_)));
+        }, *index_opt_);
     }
 
     constexpr reference operator*() const {
         return std::visit([this](auto i) {
-            return reference(std::reference_wrapper(std::get<i()>(*t_ptr_)));
-        }, *i_opt_);
+            return reference(std::reference_wrapper(std::get<i()>(*tuple_ptr_)));
+        }, *index_opt_);
     }
 
     // NOTE: operator-> is not defined because there is no way to make it
@@ -122,7 +125,7 @@ class TupleIterator {
     }
 
     constexpr bool operator==(const TupleIterator& rhs) const {
-        return t_ptr_ == rhs.t_ptr_ && i_opt_ == rhs.i_opt_;
+        return tuple_ptr_ == rhs.tuple_ptr_ && index_opt_ == rhs.index_opt_;
     }
 
     constexpr bool operator!=(const TupleIterator& rhs) const {
@@ -130,97 +133,105 @@ class TupleIterator {
     }
 
   private:
-    constexpr TupleIterator(T& t, index_variant_opt i) : t_ptr_(&t), i_opt_(i) {
-    };
+    constexpr TupleIterator(T& t, index_variant_opt i)
+        : tuple_ptr_(&t), index_opt_(i) {};
 
-    template <typename U> friend constexpr TupleIterator<U> tuple_begin(U& tup);
-    template <typename U> friend constexpr TupleIterator<U> tuple_end(U& tup);
+    friend class TupleRange<T>;
+
 
     constexpr void increment_index() {
-        if (i_opt_ != std::nullopt) {
-            i_opt_ = std::visit([](auto i) {
+        if (index_opt_ != std::nullopt) {
+            index_opt_ = std::visit([](auto i) {
                 if constexpr (i + 1 < std::tuple_size_v<T>) {
                     return index_variant_opt(detail::index_c<i + 1>);
                 } else {
                     return index_variant_opt(std::nullopt);
                 }
-            }, *i_opt_);
+            }, *index_opt_);
         }
     }
 
     constexpr void decrement_index() {
-        if (i_opt_ == std::nullopt) {
-            i_opt_ = detail::index_c<std::tuple_size_v<T> - 1>;
+        if (index_opt_ == std::nullopt) {
+            index_opt_ = detail::index_c<std::tuple_size_v<T> - 1>;
         } else {
-            i_opt_ = std::visit([](auto i) {
+            index_opt_ = std::visit([](auto i) {
                 if constexpr (i > 0) {
                     return index_variant_opt(detail::index_c<i - 1>);
                 } else {
                     return index_variant_opt(detail::index_c<0>);
                 }
-            }, *i_opt_);
+            }, *index_opt_);
         }
     }
 
     constexpr ptrdiff_t get_index() const {
-        return i_opt_ ? i_opt_->index() : std::tuple_size_v<T>;
+        return index_opt_ ? index_opt_->index() : std::tuple_size_v<T>;
     }
 
-    index_variant_opt i_opt_;
-    T* t_ptr_;
+    index_variant_opt index_opt_;
+    T* tuple_ptr_;
 };
 
 template <typename T>
-constexpr TupleIterator<T> tuple_begin(T& tup) {
-    return {tup, detail::index_c<0>};
-}
+class TupleRange {
+  public:
+    constexpr TupleRange(T& t) : tuple_ptr_(&t) {}
 
-template <typename T>
-constexpr TupleIterator<T> tuple_end(T& tup) {
-    return {tup, std::nullopt};
-}
+    constexpr TupleIterator<T> begin() const {
+        if constexpr (0 < std::tuple_size_v<T>) {
+            return {*tuple_ptr_, detail::index_c<0>};
+        } else {
+            return end();
+        }
+    }
+
+    constexpr TupleIterator<T> end() const {
+        return {*tuple_ptr_, std::nullopt};
+    }
+
+  private:
+    T* tuple_ptr_;
+};
 
 }  // namespace tuple_ext
 
 int main() {
     using namespace std::string_literals;
-    using tuple_ext::tuple_begin;
-    using tuple_ext::tuple_end;
+    using tuple_ext::TupleRange;
 
-    std::tuple t(1, 3.14, "olive"s);  // "olive" is my favorite cat :)
+    auto t = std::tuple(1, 3.14, "olive"s);  // "olive" is my favorite cat :)
+    auto tuple_range = TupleRange(t);
 
     // NOTE: We need to use .get() because we can't create a variant of
     // references. Instead, we must create a variant of std::reference_wrapper.
     auto element_printer = [](const auto& e) { std::cout << e.get() << '\n'; };
 
     std::cout << "# Forward Iteration\n";
-    auto b = tuple_begin(t);
-    auto e = tuple_end(t);
-    while (b != e) {
-        std::visit(element_printer, *b++);
-    }
+    auto b = tuple_range.begin();
+    auto e = tuple_range.end();
+    while (b != e) { std::visit(element_printer, *b++); }
 
     std::cout << "# Backwards Iteration\n";
-    b = tuple_begin(t);
-    e = tuple_end(t);
-    auto n = std::distance(b, e);
-    for (int i = 0; i < n; ++i) {
+    b = tuple_range.begin();
+    e = tuple_range.end();
+    for (ptrdiff_t n = std::distance(b, e); n > 0; --n) {
         std::visit(element_printer, *--e);
     }
 
     std::cout << "# <algorithm> for_each\n";
     std::for_each(
-        tuple_begin(t), tuple_end(t), [&](const auto& variant_of_refs) {
+        tuple_range.begin(), tuple_range.end(), [&](const auto& variant_of_refs) {
             std::visit(element_printer, variant_of_refs);
         });
 
     std::cout << "# Tuple Iterator size\n";
-    std::cout << sizeof(tuple_begin(t)) << '\n';
+    std::cout << sizeof(tuple_range.begin()) << '\n';
 
     std::cout << "# Constexpr context\n";
-    constexpr bool is_equal = ++(++(++tuple_begin(t))) == tuple_end(t);
+    constexpr bool is_equal = ++(++(++TupleRange(t).begin())) == TupleRange(t).end();
     static_assert(is_equal == true);
-    std::cout << (is_equal ? "true" : "false") << '\n';
+    std::cout << std::boolalpha << is_equal << '\n';
 
     return 0;
 }
