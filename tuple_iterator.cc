@@ -203,35 +203,36 @@ int main() {
     using tuple_ext::TupleRange;
 
     auto t = std::tuple(1, 3.14, "olive"s);  // "olive" is my favorite cat :)
-    auto tuple_range = TupleRange(t);
+    auto t_rng = TupleRange(t);
 
     // NOTE: We need to use .get() because we can't create a variant of
     // references. Instead, we must create a variant of std::reference_wrapper.
     auto element_printer = [](const auto& e) { std::cout << e.get() << '\n'; };
 
     std::cout << "# Forward Iteration\n";
-    auto b = tuple_range.begin();
-    auto e = tuple_range.end();
+    auto b = t_rng.begin();
+    auto e = t_rng.end();
     while (b != e) { std::visit(element_printer, *b++); }
 
     std::cout << "# Backwards Iteration\n";
-    b = tuple_range.begin();
-    e = tuple_range.end();
+    b = t_rng.begin();
+    e = t_rng.end();
     for (ptrdiff_t n = std::distance(b, e); n > 0; --n) {
         std::visit(element_printer, *--e);
     }
 
     std::cout << "# <algorithm> for_each\n";
     std::for_each(
-        tuple_range.begin(), tuple_range.end(), [&](const auto& variant_of_refs) {
+        t_rng.begin(), t_rng.end(), [&](const auto& variant_of_refs) {
             std::visit(element_printer, variant_of_refs);
         });
 
     std::cout << "# Tuple Iterator size\n";
-    std::cout << sizeof(tuple_range.begin()) << '\n';
+    std::cout << sizeof(t_rng.begin()) << '\n';
 
     std::cout << "# Constexpr context\n";
-    constexpr bool is_equal = ++(++(++TupleRange(t).begin())) == TupleRange(t).end();
+    constexpr bool is_equal =
+        ++(++(++TupleRange(t).begin())) == TupleRange(t).end();
     static_assert(is_equal == true);
     std::cout << std::boolalpha << is_equal << '\n';
 
