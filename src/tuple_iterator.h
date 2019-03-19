@@ -1,3 +1,5 @@
+#ifndef BRIANRODRI_TUPLE_ITERATOR_TUPLE_ITERATOR_H
+#define BRIANRODRI_TUPLE_ITERATOR_TUPLE_ITERATOR_H
 #include <iostream>
 #include <optional>
 #include <tuple>
@@ -74,14 +76,9 @@ class TupleIterator {
     // TODO: Investigate making this iterator random-access.
     using iterator_category = std::bidirectional_iterator_tag;
 
-    TupleIterator(const TupleIterator<T>& src)
-        : tuple_ptr_(src.tuple_ptr_), index_opt_(src.index_opt_) {}
-
-    TupleIterator& operator=(const TupleIterator<T>& src) {
-        tuple_ptr_ = src.tuple_ptr_;
-        index_opt_ = src.index_opt_;
-        return *this;
-    }
+    TupleIterator() = delete;
+    TupleIterator(const TupleIterator<T>& src) = default;
+    TupleIterator& operator=(const TupleIterator<T>& src) = default;
 
     constexpr TupleIterator& operator++() {
         IncrementIndex();
@@ -89,9 +86,9 @@ class TupleIterator {
     }
 
     constexpr TupleIterator operator++(int _) {
-        TupleIterator next_iter{*this};
+        TupleIterator curr_iter{*this};
         ++(*this);
-        return next_iter;
+        return curr_iter;
     }
 
     constexpr TupleIterator& operator--() {
@@ -100,9 +97,9 @@ class TupleIterator {
     }
 
     constexpr TupleIterator operator--(int _) {
-        TupleIterator next_iter{*this};
+        TupleIterator curr_iter{*this};
         --(*this);
-        return next_iter;
+        return curr_iter;
     }
 
     constexpr reference operator*() {
@@ -130,7 +127,7 @@ class TupleIterator {
     // because it is required by std::distance.
 
     constexpr difference_type operator-(const TupleIterator& rhs) const {
-        return GetIndex() - rhs.GetIndex();
+        return ptrdiff_t(index()) - ptrdiff_t(rhs.index());
     }
 
     constexpr bool operator==(const TupleIterator& rhs) const {
@@ -141,9 +138,13 @@ class TupleIterator {
         return !(*this == rhs);
     }
 
+    constexpr size_t index() const {
+        return IsEnd() ? std::tuple_size_v<T> : index_opt_->index();
+    }
+
   private:
     constexpr TupleIterator(T& t, IndexVariantOpt i = {})
-        : tuple_ptr_(&t), index_opt_(i) {};
+        : tuple_ptr_{&t}, index_opt_{i} {};
 
     // Provides interface for creating tuple iterators.
     friend class TupleRange<T>;
@@ -177,10 +178,6 @@ class TupleIterator {
         }
     }
 
-    constexpr ptrdiff_t GetIndex() const {
-        return IsEnd() ? std::tuple_size_v<T> : index_opt_->index();
-    }
-
     constexpr bool IsEnd() const { return index_opt_ == std::nullopt; }
 
     T* tuple_ptr_;
@@ -210,47 +207,4 @@ class TupleRange {
 };
 
 }  // namespace tuple_ext
-
-int main() {
-    using namespace std::string_literals;
-    using tuple_ext::TupleRange;
-
-    auto t = std::tuple(1, 3.14, "olive"s);  // "olive" is my favorite cat :)
-    auto t_rng = TupleRange(t);
-
-    // NOTE: We need to use .get() because we can't create a variant of
-    // references. Instead, we must create a variant of std::reference_wrapper.
-    auto element_printer = [](const auto& e) {
-        std::cout << '\t' << e.get() << '\n';
-    };
-
-    std::cout << "# Forward Iteration\n";
-    auto b = t_rng.begin();
-    auto e = t_rng.end();
-    while (b != e) { std::visit(element_printer, *b++); }
-
-    std::cout << "# Backwards Iteration\n";
-    b = t_rng.begin();
-    e = t_rng.end();
-    for (ptrdiff_t n = std::distance(b, e); n > 0; --n) {
-        std::visit(element_printer, *--e);
-    }
-
-    std::cout << "# <algorithm> for_each\n";
-    std::for_each(
-        t_rng.begin(), t_rng.end(), [&](const auto& variant_of_refs) {
-            std::visit(element_printer, variant_of_refs);
-        });
-
-    std::cout << "# Tuple Iterator size\n";
-    std::cout << "\tsizeof(begin_iter) = " << sizeof(t_rng.begin()) << '\n';
-    std::cout << "\tsizeof(end_iter) = " << sizeof(t_rng.end()) << '\n';
-
-    std::cout << "# Constexpr context\n";
-    constexpr bool is_equal =
-        ++(++(++TupleRange(t).begin())) == TupleRange(t).end();
-    static_assert(is_equal == true);
-    std::cout << '\t' << std::boolalpha << is_equal << '\n';
-
-    return 0;
-}
+#endif  // BRIANRODRI_TUPLE_ITERATOR_TUPLE_ITERATOR_H
