@@ -4,12 +4,6 @@
 #include "gtest/gtest.h"
 #include "tuple_iterator.h"
 
-template <typename T, typename U>
-constexpr bool operator==(const std::reference_wrapper<T>& lhs,
-                          const std::reference_wrapper<U>& rhs) {
-    return lhs.get() == rhs.get();
-}
-
 class TupleIteratorTest : public ::testing::Test {
   protected:
     using Tuple = std::tuple<int, std::vector<double>, std::string>;
@@ -93,7 +87,7 @@ TEST_F(TupleIteratorTest, ForwardIteratorConceptSatisfied) {
     EXPECT_EQ(i++, tuple_range_.begin());
     EXPECT_EQ(i, std::next(tuple_range_.begin()));
 
-    /*
+    /* TODO: Add dereference tests.
     i = tuple_range_.begin();
     EXPECT_EQ(*i++, *tuple_range_.begin());
     EXPECT_EQ(*i, *std::next(tuple_range_.begin()));
