@@ -73,7 +73,7 @@ class TupleIterator {
     using difference_type = typename detail::IterTraitsImpl<T>::DifferenceType;
 
     // TODO: Investigate making this iterator random-access.
-    using iterator_category = std::bidirectional_iterator_tag;
+    using iterator_category = std::forward_iterator_tag;
 
     // Returns a *singular iterator*, that is, an iterator that is not
     // associated with any tuple. Such instances are semantically equivalent to
@@ -109,17 +109,6 @@ class TupleIterator {
         return curr_iter;
     }
 
-    constexpr TupleIterator& operator--() {
-        DecrementIndex();
-        return *this;
-    }
-
-    constexpr TupleIterator operator--(int _) {
-        TupleIterator curr_iter{*this};
-        --(*this);
-        return curr_iter;
-    }
-
     // NOTE: operator-> is not defined because there is no way to make it
     // standard-compliant.
     //
@@ -142,10 +131,6 @@ class TupleIterator {
         return std::visit([this](auto i) -> reference {
             return {std::cref(std::get<i>(*tuple_ptr_))};
         }, *index_opt_);
-    }
-
-    constexpr difference_type operator-(const TupleIterator& rhs) const {
-        return ptrdiff_t(index()) - ptrdiff_t(rhs.index());
     }
 
     constexpr bool operator==(std::nullptr_t unused_rhs) const {
