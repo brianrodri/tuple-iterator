@@ -66,3 +66,11 @@ TEST_F(TupleIteratorTest, DefaultConstructibleConceptSatisfied) {
     EXPECT_EQ(TupleIterator(), nullptr);
     EXPECT_EQ(TupleIterator{}, nullptr);
 }
+
+TEST_F(TupleIteratorTest, CopyValidityConceptSatisfied) {
+    TupleIterator a = tuple_range_.begin();
+    TupleIterator b = tuple_range_.begin();
+
+    ASSERT_EQ(a, b);
+    EXPECT_EQ(++a, ++b);
+}
