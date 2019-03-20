@@ -99,7 +99,7 @@ class TupleIterator {
     }
 
     constexpr TupleIterator& operator++() {
-        IncrementIndex();
+        Increment();
         return *this;
     }
 
@@ -156,7 +156,7 @@ class TupleIterator {
     template <typename U>
     friend constexpr bool operator==(std::nullptr_t, const TupleIterator<U>&);
 
-    constexpr void IncrementIndex() {
+    constexpr void Increment() {
         if (!IsEnd()) {
             index_opt_ = std::visit([](auto i) -> IndexVariantOpt {
                 if constexpr (i + 1 < std::tuple_size_v<T>) {
@@ -168,7 +168,7 @@ class TupleIterator {
         }
     }
 
-    constexpr void DecrementIndex() {
+    constexpr void Decrement() {
         if (IsEnd()) {
             // Can iterate backwards from end() when target tuple is non-empty.
             if constexpr (0 < std::tuple_size_v<T>) {
