@@ -45,7 +45,7 @@ TEST_F(TupleIteratorTest, SwappableConcept) {
     ASSERT_EQ(iter_a, tuple_range_.end());
     ASSERT_EQ(iter_b, tuple_range_.begin());
     ASSERT_NE(iter_a, iter_b);
-// }
+}
 
 TEST_F(TupleIteratorTest, IteratorConcept) {
     TupleIterator iter = tuple_range_.begin();
