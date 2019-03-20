@@ -29,10 +29,10 @@ constexpr auto index_c = index_t<I>{};
 // std::tuple defines these overloads thanks to the standard, but you can create
 // overloads for custom classes as necessary.
 template <typename Tup>
-struct IterTypeTraitsImpl;
+struct IterTraitsImpl;
 
 template <typename... T>
-struct IterTypeTraitsImpl<std::tuple<T...>> {
+struct IterTraitsImpl<std::tuple<T...>> {
   private:
     // Returns a variant of compile-time index values from the provided sequence
     // of index values.
@@ -63,27 +63,40 @@ class TupleRange;
 template <typename T>
 class TupleIterator {
     using IndexVariantOpt =
-        std::optional<typename detail::IterTypeTraitsImpl<T>::IndexVariant>;
+        std::optional<typename detail::IterTraitsImpl<T>::IndexVariant>;
 
   public:
     // Type aliases expected by the standard.
-    using value_type = typename detail::IterTypeTraitsImpl<T>::ValueType;
-    using reference = typename detail::IterTypeTraitsImpl<T>::ReferenceType;
-    using pointer = typename detail::IterTypeTraitsImpl<T>::PointerType;
-    using difference_type =
-        typename detail::IterTypeTraitsImpl<T>::DifferenceType;
+    using value_type = typename detail::IterTraitsImpl<T>::ValueType;
+    using reference = typename detail::IterTraitsImpl<T>::ReferenceType;
+    using pointer = typename detail::IterTraitsImpl<T>::PointerType;
+    using difference_type = typename detail::IterTraitsImpl<T>::DifferenceType;
 
     // TODO: Investigate making this iterator random-access.
     using iterator_category = std::bidirectional_iterator_tag;
 
-    // NOTE: Default-constructed iterators are invalid and should only be used
-    // to have a *real* value assigned to it later.
+    // Returns a *singular iterator*, that is, an iterator that is not
+    // associated with any tuple. Such instances are semantically equivalent to
+    // nullptr, and should therefore never be modified or dereferenced.
+    //
+    // You can check if an instance is singular by comparing it against nullptr:
+    //     if (tuple_iter != nullptr) /* then `*tuple_iter` is safe to use */;
     TupleIterator() : tuple_ptr_{nullptr}, index_opt_{std::nullopt} {}
 
     TupleIterator(const TupleIterator<T>& src) = default;
     TupleIterator(TupleIterator<T>&& src) = default;
     TupleIterator& operator=(const TupleIterator<T>& src) = default;
     TupleIterator& operator=(TupleIterator<T>&& src) = default;
+
+    TupleIterator(nullptr_t) {
+        tuple_ptr_ = nullptr;
+        index_opt_ = std::nullopt;
+    }
+
+    TupleIterator& operator=(nullptr_t _) {
+        tuple_ptr_ = nullptr;
+        index_opt_ = std::nullopt;
+    }
 
     constexpr TupleIterator& operator++() {
         IncrementIndex();
@@ -135,8 +148,16 @@ class TupleIterator {
         return ptrdiff_t(index()) - ptrdiff_t(rhs.index());
     }
 
+    constexpr bool operator==(nullptr_t unused_rhs) const {
+        return tuple_ptr_ == nullptr;
+    }
+
     constexpr bool operator==(const TupleIterator& rhs) const {
         return tuple_ptr_ == rhs.tuple_ptr_ && index_opt_ == rhs.index_opt_;
+    }
+
+    constexpr bool operator!=(nullptr_t rhs) const {
+        return !(*this == rhs);
     }
 
     constexpr bool operator!=(const TupleIterator& rhs) const {
