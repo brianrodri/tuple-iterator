@@ -133,22 +133,6 @@ class TupleIterator {
         }, *index_opt_);
     }
 
-    constexpr bool operator==(std::nullptr_t unused_rhs) const {
-        return tuple_ptr_ == nullptr;
-    }
-
-    constexpr bool operator==(const TupleIterator& rhs) const {
-        return tuple_ptr_ == rhs.tuple_ptr_ && index_opt_ == rhs.index_opt_;
-    }
-
-    constexpr bool operator!=(std::nullptr_t rhs) const {
-        return !(*this == rhs);
-    }
-
-    constexpr bool operator!=(const TupleIterator& rhs) const {
-        return !(*this == rhs);
-    }
-
     // Returns the index of the element currently being pointed to by the
     // iterator, or the size of the tuple if the iterator points to it's end.
     constexpr size_t index() const {
@@ -162,6 +146,15 @@ class TupleIterator {
 
     // Provides interface for creating tuple iterators.
     friend class TupleRange<T>;
+
+    // Provides interface for comparing tuple iterators.
+    template <typename U, typename V>
+    friend constexpr bool operator==(const TupleIterator<U>&,
+                                     const TupleIterator<V>&);
+    template <typename U>
+    friend constexpr bool operator==(const TupleIterator<U>&, std::nullptr_t);
+    template <typename U>
+    friend constexpr bool operator==(std::nullptr_t, const TupleIterator<U>&);
 
     constexpr void IncrementIndex() {
         if (!IsEnd()) {
@@ -197,6 +190,43 @@ class TupleIterator {
     T* tuple_ptr_;
     IndexVariantOpt index_opt_;
 };
+
+template <typename T, typename U>
+constexpr bool operator==(const TupleIterator<T>& lhs,
+                          const TupleIterator<U>& rhs) {
+    if constexpr (std::is_same_v<T, U>) {
+        return lhs.tuple_ptr_ == rhs.tuple_ptr_ &&
+               lhs.index_opt_ == rhs.index_opt_;
+    } else {
+        return false;
+    }
+}
+
+template <typename T>
+constexpr bool operator==(const TupleIterator<T>& lhs, std::nullptr_t _) {
+    return lhs.tuple_ptr_ == nullptr;
+}
+
+template <typename T>
+constexpr bool operator==(std::nullptr_t _, const TupleIterator<T>& rhs) {
+    return rhs.tuple_ptr_ == nullptr;
+}
+
+template <typename T, typename U>
+constexpr bool operator!=(const TupleIterator<T>& lhs,
+                          const TupleIterator<U>& rhs) {
+    return !(lhs == rhs);
+}
+
+template <typename T>
+constexpr bool operator!=(const TupleIterator<T>& lhs, std::nullptr_t rhs) {
+    return !(lhs == rhs);
+}
+
+template <typename T>
+constexpr bool operator!=(std::nullptr_t lhs, const TupleIterator<T>& rhs) {
+    return !(lhs == rhs);
+}
 
 // Provides interface for creating tuple iterators.
 template <typename T>

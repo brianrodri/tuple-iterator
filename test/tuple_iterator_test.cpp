@@ -1,11 +1,18 @@
+#include <algorithm>
 #include <iterator>
 #include <vector>
 #include "gtest/gtest.h"
 #include "tuple_iterator.h"
 
+template <typename T, typename U>
+constexpr bool operator==(const std::reference_wrapper<T>& lhs,
+                          const std::reference_wrapper<U>& rhs) {
+    return lhs.get() == rhs.get();
+}
+
 class TupleIteratorTest : public ::testing::Test {
   protected:
-    using Tuple = std::tuple<int, std::vector<float>, std::string>;
+    using Tuple = std::tuple<int, std::vector<double>, std::string>;
     using TupleIterator = tuple_ext::TupleIterator<Tuple>;
     using TupleRange = tuple_ext::TupleRange<Tuple>;
 
@@ -76,4 +83,19 @@ TEST_F(TupleIteratorTest, CopyEqualityConceptSatisfied) {
 }
 
 TEST_F(TupleIteratorTest, ForwardIteratorConceptSatisfied) {
+    TupleIterator i = tuple_range_.begin();
+    std::vector<TupleIterator> i_copies(3, i);
+
+    EXPECT_EQ(++i, std::next(tuple_range_.begin()));
+    for (TupleIterator& j : i_copies) { EXPECT_EQ(j, tuple_range_.begin()); }
+
+    i = tuple_range_.begin();
+    EXPECT_EQ(i++, tuple_range_.begin());
+    EXPECT_EQ(i, std::next(tuple_range_.begin()));
+
+    /*
+    i = tuple_range_.begin();
+    EXPECT_EQ(*i++, *tuple_range_.begin());
+    EXPECT_EQ(*i, *std::next(tuple_range_.begin()));
+    */
 }
