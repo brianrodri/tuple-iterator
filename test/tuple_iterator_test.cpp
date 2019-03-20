@@ -55,3 +55,14 @@ TEST_F(TupleIteratorTest, IteratorConceptSatisfied) {
     EXPECT_TRUE((std::is_same_v<decltype(*iter), reference>));
     EXPECT_TRUE((std::is_same_v<decltype(++iter), TupleIterator&>));
 }
+
+TEST_F(TupleIteratorTest, DefaultConstructibleConceptSatisfied) {
+    TupleIterator default_initialized_iter;
+    EXPECT_EQ(default_initialized_iter, nullptr);
+
+    TupleIterator value_initialized_iter;
+    EXPECT_EQ(value_initialized_iter, nullptr);
+
+    EXPECT_EQ(TupleIterator(), nullptr);
+    EXPECT_EQ(TupleIterator{}, nullptr);
+}
