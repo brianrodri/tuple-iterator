@@ -1,14 +1,15 @@
 #include <iterator>
+#include <vector>
 #include "gtest/gtest.h"
 #include "tuple_iterator.h"
 
 class TupleIteratorTest : public ::testing::Test {
   protected:
-    using Tuple = std::tuple<int, float, std::string>;
+    using Tuple = std::tuple<int, std::vector<float>, std::string>;
     using TupleIterator = tuple_ext::TupleIterator<Tuple>;
     using TupleRange = tuple_ext::TupleRange<Tuple>;
 
-    Tuple tuple_{1, 2.5, "inf"};
+    Tuple tuple_{1, {2.71828, 3.14159, 1.61803}, "inf"};
     TupleRange tuple_range_{tuple_};
 };
 
