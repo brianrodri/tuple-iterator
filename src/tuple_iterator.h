@@ -76,9 +76,14 @@ class TupleIterator {
     // TODO: Investigate making this iterator random-access.
     using iterator_category = std::bidirectional_iterator_tag;
 
-    TupleIterator() = delete;
+    // NOTE: Default-constructed iterators are invalid and should only be used
+    // to have a *real* value assigned to it later.
+    TupleIterator() : tuple_ptr_{nullptr}, index_opt_{std::nullopt} {}
+
     TupleIterator(const TupleIterator<T>& src) = default;
+    TupleIterator(TupleIterator<T>&& src) = default;
     TupleIterator& operator=(const TupleIterator<T>& src) = default;
+    TupleIterator& operator=(TupleIterator<T>&& src) = default;
 
     constexpr TupleIterator& operator++() {
         IncrementIndex();
@@ -143,6 +148,7 @@ class TupleIterator {
     }
 
   private:
+    // This constructor will be called by the TupleRange class methods.
     constexpr TupleIterator(T& t, IndexVariantOpt i = {})
         : tuple_ptr_{&t}, index_opt_{i} {};
 
@@ -200,6 +206,14 @@ class TupleRange {
 
     constexpr TupleIterator<T> end() const {
         return {*tuple_ptr_};
+    }
+
+    static constexpr TupleIterator<T> begin(T& t) {
+        return TupleRange<T>{t}.begin();
+    }
+
+    static constexpr TupleIterator<T> end(T& t) {
+        return TupleRange<T>{t}.end();
     }
 
   private:
