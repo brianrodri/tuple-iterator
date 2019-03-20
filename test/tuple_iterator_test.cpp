@@ -94,21 +94,20 @@ TEST_F(TupleIteratorTest, ForwardIteratorConceptSatisfied) {
     */
 }
 
-TEST_F(TupleIteratorTest, ForwardIteratorConceptSatisfied) {
+TEST_F(TupleIteratorTest, BidirectionalIteratorConceptSatisfied) {
     TupleIterator i = tuple_range_.end();
     std::vector<TupleIterator> i_copies(3, i);
 
     --i;
     for (TupleIterator& j : i_copies) { EXPECT_EQ(j, tuple_range_.end()); }
 
-    i = tuple_range_.end();
-    auto equivalent_expression = [=i]() {
+    TupleIterator j = i = tuple_range_.end();
+    auto equivalent_expression = [&i]() {
         TupleIterator temp = i;
         --i;
         return temp;
     };
-    EXPECT_EQ(i--, tuple_range_.end());
-    EXPECT_EQ(i, equivalent_expression());
+    EXPECT_EQ(equivalent_expression(), j--);
 
     /* TODO: Add dereference tests.
     i = tuple_range_.end();
