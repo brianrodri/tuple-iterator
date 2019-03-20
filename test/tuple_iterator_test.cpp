@@ -21,7 +21,7 @@ TEST_F(TupleIteratorTest, CopyConstructibleConceptSatisfied) {
     ASSERT_EQ(tuple_begin_copy, tuple_begin);
 
     // { T(a) == a; }
-    ASSERT_EQ(TupleIterator{tuple_begin}, tuple_begin);
+    EXPECT_EQ(TupleIterator{tuple_begin}, tuple_begin);
 }
 
 TEST_F(TupleIteratorTest, CopyAssignableConceptSatisfied) {
@@ -32,7 +32,7 @@ TEST_F(TupleIteratorTest, CopyAssignableConceptSatisfied) {
 
     // { a = b; } -> { a == b }
     tuple_iter = tuple_begin;
-    ASSERT_EQ(tuple_iter, tuple_begin);
+    EXPECT_EQ(tuple_iter, tuple_begin);
 }
 
 TEST_F(TupleIteratorTest, SwappableConceptSatisfied) {
@@ -43,9 +43,9 @@ TEST_F(TupleIteratorTest, SwappableConceptSatisfied) {
     using std::swap;
     swap(iter_a, iter_b);
 
-    ASSERT_EQ(iter_a, tuple_range_.end());
-    ASSERT_EQ(iter_b, tuple_range_.begin());
     ASSERT_NE(iter_a, iter_b);
+    EXPECT_EQ(iter_a, tuple_range_.end());
+    EXPECT_EQ(iter_b, tuple_range_.begin());
 }
 
 TEST_F(TupleIteratorTest, IteratorConceptSatisfied) {
