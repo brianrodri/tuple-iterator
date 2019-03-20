@@ -120,18 +120,6 @@ class TupleIterator {
         return curr_iter;
     }
 
-    constexpr reference operator*() {
-        return std::visit([this](auto i) -> reference {
-            return {std::ref(std::get<i>(*tuple_ptr_))};
-        }, *index_opt_);
-    }
-
-    constexpr reference operator*() const {
-        return std::visit([this](auto i) -> reference {
-            return {std::cref(std::get<i>(*tuple_ptr_))};
-        }, *index_opt_);
-    }
-
     // NOTE: operator-> is not defined because there is no way to make it
     // standard-compliant.
     //
@@ -143,6 +131,18 @@ class TupleIterator {
     // For now, I've chosen to simply leave out the definition of operator->
     // while keeping the definition of a "pointer"-type. I kept the pointer-type
     // because it is required by std::distance.
+
+    constexpr reference operator*() {
+        return std::visit([this](auto i) -> reference {
+            return {std::ref(std::get<i>(*tuple_ptr_))};
+        }, *index_opt_);
+    }
+
+    constexpr reference operator*() const {
+        return std::visit([this](auto i) -> reference {
+            return {std::cref(std::get<i>(*tuple_ptr_))};
+        }, *index_opt_);
+    }
 
     constexpr difference_type operator-(const TupleIterator& rhs) const {
         return ptrdiff_t(index()) - ptrdiff_t(rhs.index());
@@ -164,6 +164,8 @@ class TupleIterator {
         return !(*this == rhs);
     }
 
+    // Returns the index of the element currently being pointed to by the
+    // iterator, or the size of the tuple if the iterator points to it's end.
     constexpr size_t index() const {
         return IsEnd() ? std::tuple_size_v<T> : index_opt_->index();
     }
