@@ -88,12 +88,12 @@ class TupleIterator {
     TupleIterator& operator=(const TupleIterator<T>& src) = default;
     TupleIterator& operator=(TupleIterator<T>&& src) = default;
 
-    TupleIterator(nullptr_t) {
+    TupleIterator(std::nullptr_t) {
         tuple_ptr_ = nullptr;
         index_opt_ = std::nullopt;
     }
 
-    TupleIterator& operator=(nullptr_t _) {
+    TupleIterator& operator=(std::nullptr_t _) {
         tuple_ptr_ = nullptr;
         index_opt_ = std::nullopt;
     }
@@ -148,7 +148,7 @@ class TupleIterator {
         return ptrdiff_t(index()) - ptrdiff_t(rhs.index());
     }
 
-    constexpr bool operator==(nullptr_t unused_rhs) const {
+    constexpr bool operator==(std::nullptr_t unused_rhs) const {
         return tuple_ptr_ == nullptr;
     }
 
@@ -156,7 +156,7 @@ class TupleIterator {
         return tuple_ptr_ == rhs.tuple_ptr_ && index_opt_ == rhs.index_opt_;
     }
 
-    constexpr bool operator!=(nullptr_t rhs) const {
+    constexpr bool operator!=(std::nullptr_t rhs) const {
         return !(*this == rhs);
     }
 
