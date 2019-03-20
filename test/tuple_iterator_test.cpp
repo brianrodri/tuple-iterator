@@ -9,7 +9,7 @@ class TupleIteratorTest : public ::testing::Test {
     using TupleIterator = tuple_ext::TupleIterator<Tuple>;
     using TupleRange = tuple_ext::TupleRange<Tuple>;
 
-    Tuple tuple_{1, {2.71828, 3.14159, 1.61803}, "inf"};
+    Tuple tuple_{1, {1.61803, 2.71828, 3.14159}, "inf"};
     TupleRange tuple_range_{tuple_};
 };
 
