@@ -60,7 +60,7 @@ TEST_F(TupleIteratorTest, DefaultConstructibleConceptSatisfied) {
     TupleIterator default_initialized_iter;
     EXPECT_EQ(default_initialized_iter, nullptr);
 
-    TupleIterator value_initialized_iter;
+    TupleIterator value_initialized_iter{};
     EXPECT_EQ(value_initialized_iter, nullptr);
 
     EXPECT_EQ(TupleIterator(), nullptr);
@@ -73,4 +73,7 @@ TEST_F(TupleIteratorTest, CopyValidityConceptSatisfied) {
 
     ASSERT_EQ(a, b);
     EXPECT_EQ(++a, ++b);
+}
+
+TEST_F(TupleIteratorTest, ForwardIteratorConceptSatisfied) {
 }
