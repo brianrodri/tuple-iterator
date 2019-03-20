@@ -13,7 +13,7 @@ class TupleIteratorTest : public ::testing::Test {
     TupleRange tuple_range_{tuple_};
 };
 
-TEST_F(TupleIteratorTest, CopyConstructibleConcept) {
+TEST_F(TupleIteratorTest, CopyConstructibleConceptSatisfied) {
     const TupleIterator tuple_begin = tuple_range_.begin();
 
     // { T a = b; } -> { a == b; }
@@ -24,7 +24,7 @@ TEST_F(TupleIteratorTest, CopyConstructibleConcept) {
     ASSERT_EQ(TupleIterator{tuple_begin}, tuple_begin);
 }
 
-TEST_F(TupleIteratorTest, CopyAssignableConcept) {
+TEST_F(TupleIteratorTest, CopyAssignableConceptSatisfied) {
     const TupleIterator tuple_begin = tuple_range_.begin();
 
     TupleIterator tuple_iter = tuple_range_.end();
@@ -35,7 +35,7 @@ TEST_F(TupleIteratorTest, CopyAssignableConcept) {
     ASSERT_EQ(tuple_iter, tuple_begin);
 }
 
-TEST_F(TupleIteratorTest, SwappableConcept) {
+TEST_F(TupleIteratorTest, SwappableConceptSatisfied) {
     ASSERT_NE(tuple_range_.begin(), tuple_range_.end());
     TupleIterator iter_a = tuple_range_.begin();
     TupleIterator iter_b = tuple_range_.end();
@@ -48,7 +48,7 @@ TEST_F(TupleIteratorTest, SwappableConcept) {
     ASSERT_NE(iter_a, iter_b);
 }
 
-TEST_F(TupleIteratorTest, IteratorConcept) {
+TEST_F(TupleIteratorTest, IteratorConceptSatisfied) {
     TupleIterator iter = tuple_range_.begin();
 
     using reference = typename std::iterator_traits<TupleIterator>::reference;
