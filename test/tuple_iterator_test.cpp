@@ -40,7 +40,7 @@ TEST_F(TupleIteratorTest, SwappableConcept) {
     TupleIterator iter_b = tuple_range_.end();
 
     using std::swap;
-    // swap(iter_a, iter_b);
+    swap(iter_a, iter_b);
 
     ASSERT_EQ(iter_a, tuple_range_.end());
     ASSERT_EQ(iter_b, tuple_range_.begin());
