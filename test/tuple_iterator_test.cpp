@@ -93,3 +93,26 @@ TEST_F(TupleIteratorTest, ForwardIteratorConceptSatisfied) {
     EXPECT_EQ(*i, *std::next(tuple_range_.begin()));
     */
 }
+
+TEST_F(TupleIteratorTest, ForwardIteratorConceptSatisfied) {
+    TupleIterator i = tuple_range_.end();
+    std::vector<TupleIterator> i_copies(3, i);
+
+    --i;
+    for (TupleIterator& j : i_copies) { EXPECT_EQ(j, tuple_range_.end()); }
+
+    i = tuple_range_.end();
+    auto equivalent_expression = [=i]() {
+        TupleIterator temp = i;
+        --i;
+        return temp;
+    };
+    EXPECT_EQ(i--, tuple_range_.end());
+    EXPECT_EQ(i, equivalent_expression());
+
+    /* TODO: Add dereference tests.
+    i = tuple_range_.end();
+    EXPECT_EQ(*i--, *tuple_range_.end());
+    EXPECT_EQ(*i, *std::next(tuple_range_.end()));
+    */
+}
