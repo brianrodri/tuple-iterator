@@ -246,7 +246,9 @@ class TupleRange {
         }
     }
 
-    constexpr TupleIterator<T> end() const { return {tuple_ptr_}; }
+    constexpr TupleIterator<T> end() const {
+        return {tuple_ptr_, std::nullopt};
+    }
 
     static constexpr TupleIterator<T> begin(T& t) {
         return TupleRange{t}.begin();
