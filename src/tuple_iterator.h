@@ -101,7 +101,7 @@ class TupleIterator {
 
     constexpr TupleIterator operator++(int _) {
         TupleIterator curr_iter{*this};
-        ++(*this);
+        Increment();
         return curr_iter;
     }
 
@@ -112,7 +112,7 @@ class TupleIterator {
 
     constexpr TupleIterator operator--(int _) {
         TupleIterator curr_iter{*this};
-        --(*this);
+        Decrement();
         return curr_iter;
     }
 
@@ -249,16 +249,14 @@ class TupleRange {
         }
     }
 
-    constexpr TupleIterator<T> end() const {
-        return {*tuple_ptr_};
-    }
+    constexpr TupleIterator<T> end() const { return {*tuple_ptr_}; }
 
     static constexpr TupleIterator<T> begin(T& t) {
-        return TupleRange<T>{t}.begin();
+        return TupleRange{t}.begin();
     }
 
     static constexpr TupleIterator<T> end(T& t) {
-        return TupleRange<T>{t}.end();
+        return TupleRange{t}.end();
     }
 
   private:
