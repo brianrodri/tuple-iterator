@@ -152,13 +152,15 @@ class TupleIterator {
     friend class TupleRange<T>;
 
     // Provides interface for comparing tuple iterators.
-    template <typename U, typename V>
-    friend constexpr bool operator==(const TupleIterator<U>&,
-                                     const TupleIterator<V>&);
     template <typename U>
-    friend constexpr bool operator==(const TupleIterator<U>&, std::nullptr_t);
+    friend constexpr bool operator==(const TupleIterator<U>& lhs,
+                                     const TupleIterator<U>& rhs);
     template <typename U>
-    friend constexpr bool operator==(std::nullptr_t, const TupleIterator<U>&);
+    friend constexpr bool operator==(const TupleIterator<U>& lhs,
+                                     std::nullptr_t rhs);
+    template <typename U>
+    friend constexpr bool operator==(std::nullptr_t lhs,
+                                     const TupleIterator<U>& rhs);
 
     constexpr void Increment() {
         if (!IsEnd()) {
@@ -195,30 +197,38 @@ class TupleIterator {
     IndexVariantOpt index_opt_;
 };
 
+template <typename T>
+constexpr bool operator==(const TupleIterator<T>& lhs,
+                          const TupleIterator<T>& rhs) {
+    return lhs.tuple_ptr_ == rhs.tuple_ptr_ &&
+           lhs.index_opt_ == rhs.index_opt_;
+}
+
 template <typename T, typename U>
 constexpr bool operator==(const TupleIterator<T>& lhs,
                           const TupleIterator<U>& rhs) {
-    if constexpr (std::is_same_v<T, U>) {
-        return lhs.tuple_ptr_ == rhs.tuple_ptr_ &&
-               lhs.index_opt_ == rhs.index_opt_;
-    } else {
-        return false;
-    }
+    return false;
 }
 
 template <typename T>
-constexpr bool operator==(const TupleIterator<T>& lhs, std::nullptr_t _) {
-    return lhs.tuple_ptr_ == nullptr;
+constexpr bool operator==(const TupleIterator<T>& lhs, std::nullptr_t rhs) {
+    return lhs.tuple_ptr_ == rhs;
 }
 
 template <typename T>
-constexpr bool operator==(std::nullptr_t _, const TupleIterator<T>& rhs) {
-    return rhs.tuple_ptr_ == nullptr;
+constexpr bool operator==(std::nullptr_t lhs, const TupleIterator<T>& rhs) {
+    return lhs == rhs.tuple_ptr_;
 }
 
 template <typename T, typename U>
 constexpr bool operator!=(const TupleIterator<T>& lhs,
                           const TupleIterator<U>& rhs) {
+    return true;
+}
+
+template <typename T>
+constexpr bool operator!=(const TupleIterator<T>& lhs,
+                          const TupleIterator<T>& rhs) {
     return !(lhs == rhs);
 }
 
