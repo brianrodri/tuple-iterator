@@ -14,10 +14,7 @@ namespace detail {
 // Helper aliases to help cut down boilerplate when working with compile-time
 // index values.
 template <size_t I>
-using index_t = std::integral_constant<size_t, I>;
-
-template <size_t I>
-constexpr auto index_c = index_t<I>{};
+using IndexType = std::integral_constant<size_t, I>;
 
 // Exposes types required by TupleIterator to be standard-compliant.
 //
@@ -38,7 +35,7 @@ struct IterTraitsImpl<std::tuple<T...>> {
     // Returns a variant of compile-time index values from the provided sequence
     // of index values.
     template <size_t... I> static constexpr auto
-    MakeIndexVariant(std::index_sequence<I...>) -> std::variant<index_t<I>...> {
+    ToIndexVariant(std::index_sequence<I...>) -> std::variant<IndexType<I>...> {
         // NOTE: This function is only inspected at compile-time — never called.
         return {};
     };
@@ -52,7 +49,7 @@ struct IterTraitsImpl<std::tuple<T...>> {
     // An implementation detail for remembering the current index which a tuple
     // iterator is pointing to.
     using IndexVariant =
-        decltype(MakeIndexVariant(std::index_sequence_for<T...>()));
+        decltype(ToIndexVariant(std::index_sequence_for<T...>()));
 };
 
 }  // namespace detail
@@ -72,8 +69,7 @@ class TupleIterator {
     using reference = typename detail::IterTraitsImpl<T>::ReferenceType;
     using pointer = typename detail::IterTraitsImpl<T>::PointerType;
     using difference_type = typename detail::IterTraitsImpl<T>::DifferenceType;
-
-    // TODO: Investigate making this iterator random-access.
+    // TODO: Investigate promoting to random-access.
     using iterator_category = std::bidirectional_iterator_tag;
 
     // Returns a *singular iterator*, that is, an iterator that is not
@@ -167,7 +163,7 @@ class TupleIterator {
         if (!IsEnd()) {
             index_opt_ = std::visit([](auto i) -> IndexVariantOpt {
                 if constexpr (i + 1 < std::tuple_size_v<T>) {
-                    return {detail::index_c<i + 1>};
+                    return {detail::IndexType<i + 1>{}};
                 } else {
                     return {};
                 }
@@ -179,14 +175,14 @@ class TupleIterator {
         if (IsEnd()) {
             // Can iterate backwards from end() when target tuple is non-empty.
             if constexpr (0 < std::tuple_size_v<T>) {
-                index_opt_ = detail::index_c<std::tuple_size_v<T> - 1>;
+                index_opt_ = detail::IndexType<std::tuple_size_v<T> - 1>{};
             }
         } else {
             index_opt_ = std::visit([](auto i) -> IndexVariantOpt {
                 if constexpr (i > 0) {
-                    return {detail::index_c<i - 1>};
+                    return {detail::IndexType<i - 1>{}};
                 } else {
-                    return {detail::index_c<0>};
+                    return {detail::IndexType<0>{}};
                 }
             }, *index_opt_);
         }
@@ -243,7 +239,7 @@ class TupleRange {
 
     constexpr TupleIterator<T> begin() const {
         if constexpr (0 < std::tuple_size_v<T>) {
-            return {*tuple_ptr_, detail::index_c<0>};
+            return {*tuple_ptr_, detail::IndexType<0>{}};
         } else {
             return end();
         }
