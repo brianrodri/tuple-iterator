@@ -1,12 +1,12 @@
 add_executable(
     unit_tests
-    tuple_iterator_test.cpp
+    tuple-iterator_test.cpp
     )
 
 target_link_libraries(
     unit_tests
     gtest_main
-    tuple_iterator
+    tuple-iterator
     )
 
 add_test(

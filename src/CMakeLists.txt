@@ -1,15 +1,15 @@
-add_library(tuple_iterator "")
+add_library(tuple-iterator "")
 
 target_sources(
-    tuple_iterator
+    tuple-iterator
     PRIVATE
-        tuple_iterator.cpp
+        tuple-iterator.cpp
     PUBLIC
-        ${CMAKE_CURRENT_LIST_DIR}/tuple_iterator.h
+        ${CMAKE_CURRENT_LIST_DIR}/tuple-iterator.h
     )
 
 target_include_directories(
-    tuple_iterator
+    tuple-iterator
     PUBLIC
         ${CMAKE_CURRENT_LIST_DIR}
     )
