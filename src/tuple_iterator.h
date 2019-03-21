@@ -80,24 +80,19 @@ class TupleIterator {
     // associated with any tuple. Such instances are semantically equivalent to
     // nullptr, and should therefore never be modified or dereferenced.
     //
-    // You can check if an instance is singular by comparing it against nullptr:
-    //     if (tuple_iter != nullptr) /* then `*tuple_iter` is safe to use */;
-    TupleIterator() : tuple_ptr_{nullptr}, index_opt_{std::nullopt} {}
-
-    TupleIterator(const TupleIterator<T>& src) = default;
-    TupleIterator(TupleIterator<T>&& src) = default;
-    TupleIterator& operator=(const TupleIterator<T>& src) = default;
-    TupleIterator& operator=(TupleIterator<T>&& src) = default;
-
-    TupleIterator(std::nullptr_t) {
-        tuple_ptr_ = nullptr;
-        index_opt_ = std::nullopt;
-    }
+    // You can check if an instance is singular by comparing it against nullptr.
+    explicit TupleIterator(std::nullptr_t _ = {})
+        : tuple_ptr_{nullptr}, index_opt_{std::nullopt} {}
 
     TupleIterator& operator=(std::nullptr_t _) {
         tuple_ptr_ = nullptr;
         index_opt_ = std::nullopt;
     }
+
+    TupleIterator(const TupleIterator<T>& src) = default;
+    TupleIterator(TupleIterator<T>&& src) = default;
+    TupleIterator& operator=(const TupleIterator<T>& src) = default;
+    TupleIterator& operator=(TupleIterator<T>&& src) = default;
 
     constexpr TupleIterator& operator++() {
         Increment();
