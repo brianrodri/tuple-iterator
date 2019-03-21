@@ -1,5 +1,6 @@
 #ifndef BRIANRODRI_TUPLE_ITERATOR_TUPLE_ITERATOR_H
 #define BRIANRODRI_TUPLE_ITERATOR_TUPLE_ITERATOR_H
+#include <functional>
 #include <iostream>
 #include <optional>
 #include <tuple>
