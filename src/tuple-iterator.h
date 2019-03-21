@@ -144,8 +144,9 @@ class TupleIterator {
 
   private:
     // This constructor will be called by the TupleRange class methods.
-    constexpr TupleIterator(T& t, IndexVariantOpt i = {})
-        : tuple_ptr_{&t}, index_opt_{i} {};
+    constexpr TupleIterator(T* t, IndexVariantOpt i = {})
+        : tuple_ptr_{t}, index_opt_{tuple_ptr_ == nullptr ? std::nullopt : i} {
+    };
 
     // Provides interface for creating tuple iterators.
     friend class TupleRange<T>;
@@ -239,13 +240,13 @@ class TupleRange {
 
     constexpr TupleIterator<T> begin() const {
         if constexpr (0 < std::tuple_size_v<T>) {
-            return {*tuple_ptr_, detail::IndexType<0>{}};
+            return {tuple_ptr_, detail::IndexType<0>{}};
         } else {
             return end();
         }
     }
 
-    constexpr TupleIterator<T> end() const { return {*tuple_ptr_}; }
+    constexpr TupleIterator<T> end() const { return {tuple_ptr_}; }
 
     static constexpr TupleIterator<T> begin(T& t) {
         return TupleRange{t}.begin();
