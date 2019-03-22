@@ -71,7 +71,7 @@ class TupleRange;
 
 template <typename T>
 class TupleIterator {
-    static constexpr const auto kGetters = detail::GetterImpl<T>::MakeGetters();
+    static constexpr auto kGetters = detail::GetterImpl<T>::MakeGetters();
     using GetterIter = typename decltype(kGetters)::iterator;
 
   public:
