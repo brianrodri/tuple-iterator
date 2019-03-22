@@ -11,11 +11,6 @@
 namespace tuple_ext {
 namespace detail {
 
-// Helper aliases to help cut down boilerplate when working with compile-time
-// index values.
-template <size_t I>
-using IndexType = std::integral_constant<size_t, I>;
-
 // Exposes types required by TupleIterator to be standard-compliant.
 //
 // The types are derived from the given type parameter, which is assumed to be a
@@ -31,25 +26,33 @@ struct IterTraitsImpl;
 
 template <typename... T>
 struct IterTraitsImpl<std::tuple<T...>> {
-  private:
-    // Returns a variant of compile-time index values from the provided sequence
-    // of index values.
-    template <size_t... I> static constexpr auto
-    ToIndexVariant(std::index_sequence<I...>) -> std::variant<IndexType<I>...> {
-        // NOTE: This function is only inspected at compile-time — never called.
-        return {};
-    };
-
-  public:
     using PointerType = std::variant<T*...>;
     using ReferenceType = std::variant<std::reference_wrapper<T>...>;
     using ValueType = ReferenceType;
     using DifferenceType = std::ptrdiff_t;
+};
 
-    // An implementation detail for remembering the current index which a tuple
-    // iterator is pointing to.
-    using IndexVariant =
-        decltype(ToIndexVariant(std::index_sequence_for<T...>()));
+template <typename T>
+struct GetterImpl {
+  private:
+    static constexpr size_t kTupleSize = std::tuple_size_v<T>;
+    using reference = typename IterTraitsImpl<T>::ReferenceType;
+
+  public:
+    using GetterPointer = reference(*)(T&);
+    using GetterArray = std::array<const GetterPointer, kTupleSize>;
+
+    static constexpr GetterArray MakeGetters() {
+        return MakeGettersImpl(std::make_index_sequence<kTupleSize>());
+    }
+
+  private:
+    template <size_t... I>
+    static constexpr GetterArray MakeGettersImpl(std::index_sequence<I...> _) {
+        return {
+            +[](T& t) constexpr -> reference { return {std::get<I>(t)}; }...
+        };
+    }
 };
 
 }  // namespace detail
@@ -60,8 +63,8 @@ class TupleRange;
 
 template <typename T>
 class TupleIterator {
-    using IndexVariantOpt =
-        std::optional<typename detail::IterTraitsImpl<T>::IndexVariant>;
+    static constexpr const auto kGetters = detail::GetterImpl<T>::MakeGetters();
+    using GetterIter = typename decltype(kGetters)::iterator;
 
   public:
     // Type aliases expected by the standard.
@@ -78,11 +81,12 @@ class TupleIterator {
     //
     // You can check if an instance is singular by comparing it against nullptr.
     explicit TupleIterator(std::nullptr_t _ = {})
-        : tuple_ptr_{nullptr}, index_opt_{std::nullopt} {}
+        : tuple_ptr_{nullptr}, getter_iter_{std::cend(kGetters)} {}
 
     TupleIterator& operator=(std::nullptr_t _) {
         tuple_ptr_ = nullptr;
-        index_opt_ = std::nullopt;
+        getter_iter_ = std::cend(kGetters);
+        return *this;
     }
 
     TupleIterator(const TupleIterator<T>& src) = default;
@@ -91,24 +95,24 @@ class TupleIterator {
     TupleIterator& operator=(TupleIterator<T>&& src) = default;
 
     constexpr TupleIterator& operator++() {
-        Increment();
+        ++getter_iter_;
         return *this;
     }
 
     constexpr TupleIterator operator++(int _) {
         TupleIterator curr_iter{*this};
-        Increment();
+        ++getter_iter_;
         return curr_iter;
     }
 
     constexpr TupleIterator& operator--() {
-        Decrement();
+        --getter_iter_;
         return *this;
     }
 
     constexpr TupleIterator operator--(int _) {
         TupleIterator curr_iter{*this};
-        Decrement();
+        --getter_iter_;
         return curr_iter;
     }
 
@@ -124,28 +128,20 @@ class TupleIterator {
     // while keeping the definition of a "pointer"-type. I kept the pointer-type
     // because it is required by std::distance.
 
-    constexpr reference operator*() {
-        return std::visit([this](auto i) -> reference {
-            return {std::ref(std::get<i>(*tuple_ptr_))};
-        }, *index_opt_);
-    }
-
-    constexpr reference operator*() const {
-        return std::visit([this](auto i) -> reference {
-            return {std::cref(std::get<i>(*tuple_ptr_))};
-        }, *index_opt_);
-    }
+    constexpr reference operator*() { return (*getter_iter_)(*tuple_ptr_); }
 
     // Returns the index of the element currently being pointed to by the
     // iterator, or the size of the tuple if the iterator points to it's end.
     constexpr size_t index() const {
-        return IsEnd() ? std::tuple_size_v<T> : index_opt_->index();
+        return std::distance(std::cbegin(kGetters), getter_iter_);
     }
 
   private:
     // This constructor will be called by the TupleRange class methods.
-    constexpr TupleIterator(T* t, IndexVariantOpt i = {})
-        : tuple_ptr_{t}, index_opt_{tuple_ptr_ == nullptr ? std::nullopt : i} {
+    constexpr TupleIterator(T* t, const bool to_end)
+        : tuple_ptr_{t},
+          getter_iter_{(tuple_ptr_ == nullptr || to_end)
+                           ? std::cend(kGetters) : std::cbegin(kGetters)} {
     };
 
     // Provides interface for creating tuple iterators.
@@ -162,46 +158,17 @@ class TupleIterator {
     friend constexpr bool operator==(std::nullptr_t lhs,
                                      const TupleIterator<U>& rhs);
 
-    constexpr void Increment() {
-        if (!IsEnd()) {
-            index_opt_ = std::visit([](auto i) -> IndexVariantOpt {
-                if constexpr (i + 1 < std::tuple_size_v<T>) {
-                    return {detail::IndexType<i + 1>{}};
-                } else {
-                    return {};
-                }
-            }, *index_opt_);
-        }
-    }
-
-    constexpr void Decrement() {
-        if (IsEnd()) {
-            // Can iterate backwards from end() when target tuple is non-empty.
-            if constexpr (0 < std::tuple_size_v<T>) {
-                index_opt_ = detail::IndexType<std::tuple_size_v<T> - 1>{};
-            }
-        } else {
-            index_opt_ = std::visit([](auto i) -> IndexVariantOpt {
-                if constexpr (i > 0) {
-                    return {detail::IndexType<i - 1>{}};
-                } else {
-                    return {detail::IndexType<0>{}};
-                }
-            }, *index_opt_);
-        }
-    }
-
-    constexpr bool IsEnd() const { return index_opt_ == std::nullopt; }
+    constexpr bool IsEnd() const { return getter_iter_ == kGetters.cend(); }
 
     T* tuple_ptr_;
-    IndexVariantOpt index_opt_;
+    GetterIter getter_iter_;
 };
 
 template <typename T>
 constexpr bool operator==(const TupleIterator<T>& lhs,
                           const TupleIterator<T>& rhs) {
     return lhs.tuple_ptr_ == rhs.tuple_ptr_ &&
-           lhs.index_opt_ == rhs.index_opt_;
+           lhs.getter_iter_ == rhs.getter_iter_;
 }
 
 template <typename T, typename U>
@@ -249,15 +216,11 @@ class TupleRange {
     constexpr TupleRange(T& t) : tuple_ptr_(&t) {}
 
     constexpr TupleIterator<T> begin() const {
-        if constexpr (0 < std::tuple_size_v<T>) {
-            return {tuple_ptr_, detail::IndexType<0>{}};
-        } else {
-            return end();
-        }
+        return {tuple_ptr_, /*to_end=*/false};
     }
 
     constexpr TupleIterator<T> end() const {
-        return {tuple_ptr_, std::nullopt};
+        return {tuple_ptr_, /*to_end=*/true};
     }
 
     static constexpr TupleIterator<T> begin(T& t) {
