@@ -32,6 +32,14 @@ struct IterTraitsImpl<std::tuple<T...>> {
     using DifferenceType = std::ptrdiff_t;
 };
 
+template <typename... T>
+struct IterTraitsImpl<const std::tuple<T...>> {
+    using PointerType = std::variant<const T*...>;
+    using ReferenceType = std::variant<std::reference_wrapper<const T>...>;
+    using ValueType = ReferenceType;
+    using DifferenceType = std::ptrdiff_t;
+};
+
 template <typename T>
 struct GetterImpl {
   private:
