@@ -3,5 +3,5 @@ mkdir -p build
 cd build
 cmake ..
 make
-./bin/unit_tests
 cd ..
+./build/bin/unit_tests
