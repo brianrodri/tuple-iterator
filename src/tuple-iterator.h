@@ -48,7 +48,7 @@ struct GetterImpl {
 
   public:
     using GetterPointer = ReferenceType(*)(T&);
-    using GetterArray = std::array<const GetterPointer, kTupleSize>;
+    using GetterArray = const std::array<const GetterPointer, kTupleSize>;
 
     static constexpr GetterArray MakeGetters() {
         return MakeGettersImpl(std::make_index_sequence<kTupleSize>());
