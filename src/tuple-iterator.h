@@ -36,10 +36,10 @@ template <typename T>
 struct GetterImpl {
   private:
     static constexpr size_t kTupleSize = std::tuple_size_v<T>;
-    using reference = typename IterTraitsImpl<T>::ReferenceType;
+    using ReferenceType = typename IterTraitsImpl<T>::ReferenceType;
 
   public:
-    using GetterPointer = reference(*)(T&);
+    using GetterPointer = ReferenceType(*)(T&);
     using GetterArray = std::array<const GetterPointer, kTupleSize>;
 
     static constexpr GetterArray MakeGetters() {
@@ -50,7 +50,7 @@ struct GetterImpl {
     template <size_t... I>
     static constexpr GetterArray MakeGettersImpl(std::index_sequence<I...> _) {
         return {
-            +[](T& t) constexpr -> reference { return {std::get<I>(t)}; }...
+            +[](T& t) constexpr -> ReferenceType { return {std::get<I>(t)}; }...
         };
     }
 };
