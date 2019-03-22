@@ -11,7 +11,7 @@
 namespace tuple_ext {
 namespace detail {
 
-// Exposes types required by TupleIterator to be standard-compliant.
+// Exposes types required by TupleIterator to be standards-compliant.
 //
 // The types are derived from the given type parameter, which is assumed to be a "tuple-like"
 // structure. Specifically, `T` must satisfy the following:
