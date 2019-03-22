@@ -104,9 +104,8 @@ class TupleIterator {
     constexpr TupleIterator& operator+=(difference_type n) { getter_iter_ += n; return *this; }
     constexpr TupleIterator& operator-=(difference_type n) { getter_iter_ -= n; return *this; }
 
-    constexpr reference operator*() const { return *getter_iter_(*tuple_ptr_); }
-    constexpr reference operator[](difference_type i) const { return getter_iter_[i](*tuple_ptr_); }
-
+    constexpr reference operator*() const { return *(*this); }
+    constexpr reference operator[](difference_type i) const { return (*this)[i](*tuple_ptr_); }
     constexpr TupleIterator operator+(difference_type n) const { return TupleIterator{*this} += n; }
     constexpr TupleIterator operator-(difference_type n) const { return TupleIterator{*this} -= n; }
 
