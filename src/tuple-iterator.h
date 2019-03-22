@@ -20,17 +20,18 @@ namespace detail {
 //
 // std::tuple defines these overloads thanks to the standard, but you can create overloads for
 // custom classes as necessary.
-template <typename Tup>
+template <typename T>
 struct IterTraitsImpl {
   private:
     template <size_t... I> static constexpr auto Impl(std::index_sequence<I...> _) ->
-        std::variant<std::reference_wrapper<std::tuple_element_t<I, Tup>>...>;
+        std::variant<std::reference_wrapper<std::tuple_element_t<I, T>>...>;
 
   public:
-    using ReferenceType = decltype(Impl(std::make_index_sequence<std::tuple_size_v<Tup>>()));
+    using ReferenceType = decltype(Impl(std::make_index_sequence<std::tuple_size_v<T>>()));
     using ValueType = ReferenceType;
 };
 
+// Builds an array of std::get accessors for the given type T.
 template <typename T>
 struct GetterImpl {
   private:
@@ -67,8 +68,8 @@ class TupleIterator {
 
   public:
     // Type aliases expected by the standard.
-    using value_type = typename detail::IterTraitsImpl<T>::ValueType;
     using reference = typename detail::IterTraitsImpl<T>::ReferenceType;
+    using value_type = typename detail::IterTraitsImpl<T>::ValueType;
     using pointer = typename std::iterator_traits<GetterIter>::pointer;
     using difference_type = typename std::iterator_traits<GetterIter>::difference_type;
     using iterator_category = typename std::iterator_traits<GetterIter>::iterator_category;
@@ -102,9 +103,6 @@ class TupleIterator {
     constexpr TupleIterator operator--(int _) { TupleIterator i{*this}; --getter_iter_; return i; }
     constexpr TupleIterator operator+(difference_type n) const { return TupleIterator{*this} += n; }
     constexpr TupleIterator operator-(difference_type n) const { return TupleIterator{*this} -= n; }
-
-    template <typename U> friend constexpr TupleIterator<U> operator+(
-        typename TupleIterator<U>::difference_type n, const TupleIterator<U>& i);
 
     constexpr difference_type operator-(const TupleIterator& rhs) const {
         return getter_iter_ - rhs.getter_iter_;
