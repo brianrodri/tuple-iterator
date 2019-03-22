@@ -23,11 +23,12 @@ namespace detail {
 template <typename T>
 struct IterTraitsImpl {
   private:
-    template <size_t... I> static constexpr auto Impl(std::index_sequence<I...> _) ->
+    template <size_t... I> static constexpr auto ReferenceTypeImpl(std::index_sequence<I...> _) ->
         std::variant<std::reference_wrapper<std::tuple_element_t<I, T>>...>;
 
   public:
-    using ReferenceType = decltype(Impl(std::make_index_sequence<std::tuple_size_v<T>>()));
+    using ReferenceType =
+		decltype(ReferenceTypeImpl(std::make_index_sequence<std::tuple_size_v<T>>()));
     using ValueType = ReferenceType;
 };
 
@@ -42,12 +43,12 @@ struct GetterImpl {
     using GetterArray = std::array<const GetterPointer, std::tuple_size_v<T>>;
 
     static constexpr const GetterArray MakeGetters() {
-        return Impl(std::make_index_sequence<std::tuple_size_v<T>>());
+        return MakeGettersImpl(std::make_index_sequence<std::tuple_size_v<T>>());
     }
 
   private:
     template <size_t... I>
-    static constexpr const GetterArray Impl(std::index_sequence<I...> _) {
+    static constexpr const GetterArray MakeGettersImpl(std::index_sequence<I...> _) {
         return {
             +[](T& t) constexpr { return ReferenceType{std::get<I>(t)}; }
             ...
@@ -75,10 +76,10 @@ class TupleIterator {
     using iterator_category = typename std::iterator_traits<GetterIter>::iterator_category;
 
 	// Returns a *singular iterator*, that is, an iterator that is not associated with any tuple.
-	// Such instances are semantically equivalent to nullptr, and should therefore never be modified
-	// or dereferenced.
+	// Such instances are semantically equivalent to nullptr, and should therefore never be
+	// incremented or dereferenced; only reassignment is allowed.
     //
-    // You can check if an instance is singular by comparing it against nullptr.
+    // You can check if an instance is singular by comparing it against std::nullptr_t.
     explicit TupleIterator(std::nullptr_t _ = nullptr)
         : tuple_ptr_{nullptr}, getter_iter_{std::cend(kGetters)} {}
     ~TupleIterator() = default;
