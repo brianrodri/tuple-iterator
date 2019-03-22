@@ -14,12 +14,12 @@ namespace detail {
 // Exposes types required by TupleIterator to be standard-compliant.
 //
 // The types are derived from the given type parameter, which is assumed to be a "tuple-like"
-// structure. Specifically, `Tup` must compile in the following contexts:
-//   - std::get<I>(std::declval<Tup&>()) -> std::tuple_element_t<I, Tup>&
-//   - std::tuple_size<Tup>
+// structure. Specifically, `T` must satisfy the following:
+//   - std::get<I>(std::declval<T&>()) -> std::tuple_element_t<I, T>&
+//   - std::tuple_size_v<T> -> constexpr size_t
 //
-// std::tuple defines these overloads thanks to the standard, but you can create overloads for
-// custom classes as necessary.
+// std::tuple, std::pair, and std::array define these overloads by default, but you can create
+// overloads for your own custom classes as necessary.
 template <typename T>
 struct IterTraitsImpl {
   private:
@@ -74,25 +74,26 @@ class TupleIterator {
     using difference_type = typename std::iterator_traits<GetterIter>::difference_type;
     using iterator_category = typename std::iterator_traits<GetterIter>::iterator_category;
 
-    // Returns a *singular iterator*, that is, an iterator that is not
-    // associated with any tuple. Such instances are semantically equivalent to
-    // nullptr, and should therefore never be modified or dereferenced.
+	// Returns a *singular iterator*, that is, an iterator that is not associated with any tuple.
+	// Such instances are semantically equivalent to nullptr, and should therefore never be modified
+	// or dereferenced.
     //
     // You can check if an instance is singular by comparing it against nullptr.
     explicit TupleIterator(std::nullptr_t _ = nullptr)
         : tuple_ptr_{nullptr}, getter_iter_{std::cend(kGetters)} {}
+    ~TupleIterator() = default;
 
     TupleIterator(const TupleIterator<T>& src) = default;
     TupleIterator(TupleIterator<T>&& src) = default;
+
+    TupleIterator& operator=(const TupleIterator<T>& src) = default;
+    TupleIterator& operator=(TupleIterator<T>&& src) = default;
 
     TupleIterator& operator=(std::nullptr_t _) {
         tuple_ptr_ = nullptr;
         getter_iter_ = std::cend(kGetters);
         return *this;
     }
-
-    TupleIterator& operator=(const TupleIterator<T>& src) = default;
-    TupleIterator& operator=(TupleIterator<T>&& src) = default;
 
     constexpr TupleIterator& operator++() { ++getter_iter_; return *this; }
     constexpr TupleIterator operator++(int _) { TupleIterator i{*this}; ++getter_iter_; return i; }
