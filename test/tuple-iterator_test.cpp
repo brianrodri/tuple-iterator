@@ -65,10 +65,10 @@ TEST_F(TupleIteratorTest, IteratorConceptSatisfied) {
 }
 
 TEST_F(TupleIteratorTest, DefaultConstructibleConceptSatisfied) {
-    TupleIterator default_initialized_iter;
+    const TupleIterator default_initialized_iter;
     EXPECT_EQ(default_initialized_iter, nullptr);
 
-    TupleIterator value_initialized_iter{};
+    const TupleIterator value_initialized_iter{};
     EXPECT_EQ(value_initialized_iter, nullptr);
 
     EXPECT_EQ(TupleIterator(), nullptr);
@@ -101,16 +101,12 @@ TEST_F(TupleIteratorTest, BidirectionalIteratorConceptSatisfied) {
     TupleIterator i = tuple_range_.end();
     std::vector<TupleIterator> i_copies(3, i);
 
-    --i;
+    EXPECT_EQ(--i, std::prev(tuple_range_.end()));
     for (TupleIterator& j : i_copies) { EXPECT_EQ(j, tuple_range_.end()); }
 
-    TupleIterator j = i = tuple_range_.end();
-    auto equivalent_expression = [&i]() {
-        TupleIterator temp = i;
-        --i;
-        return temp;
-    };
-    EXPECT_EQ(equivalent_expression(), j--);
+    i = tuple_range_.end();
+    EXPECT_EQ(i--, tuple_range_.end());
+    EXPECT_EQ(i, std::prev(tuple_range_.end()));
 
     // TODO: Add dereference tests.
 }
