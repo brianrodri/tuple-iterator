@@ -72,8 +72,7 @@ class TupleIterator {
     using reference = typename detail::IterTraitsImpl<T>::ReferenceType;
     using pointer = typename detail::IterTraitsImpl<T>::PointerType;
     using difference_type = typename detail::IterTraitsImpl<T>::DifferenceType;
-    // TODO: Investigate promoting to random-access.
-    using iterator_category = std::bidirectional_iterator_tag;
+    using iterator_category = std::random_access_iterator_tag;
 
     // Returns a *singular iterator*, that is, an iterator that is not
     // associated with any tuple. Such instances are semantically equivalent to
@@ -114,6 +113,55 @@ class TupleIterator {
         TupleIterator curr_iter{*this};
         --getter_iter_;
         return curr_iter;
+    }
+
+    constexpr TupleIterator& operator+=(difference_type n) {
+        getter_iter_ += n;
+        return *this;
+    }
+
+    constexpr TupleIterator operator+(difference_type n) const {
+        TupleIterator temp = *this;
+        return temp += n;
+    }
+
+    template <typename U>
+    friend constexpr TupleIterator<U>
+    operator+(typename TupleIterator<U>::difference_type n,
+              const TupleIterator<U>& i);
+
+    constexpr TupleIterator& operator-=(difference_type n) {
+        getter_iter_ -= n;
+        return *this;
+    }
+
+    constexpr TupleIterator operator-(difference_type n) const {
+        TupleIterator temp = *this;
+        return temp -= n;
+    }
+
+    constexpr difference_type operator-(const TupleIterator& rhs) const {
+        return getter_iter_ - rhs.getter_iter_;
+    }
+
+    constexpr bool operator<(const TupleIterator& rhs) const {
+        return getter_iter_ < rhs.getter_iter_;
+    }
+
+    constexpr bool operator>(const TupleIterator& rhs) const {
+        return rhs < *this;
+    }
+
+    constexpr bool operator>=(const TupleIterator& rhs) const {
+        return !(*this < rhs);
+    }
+
+    constexpr bool operator<=(const TupleIterator& rhs) const {
+        return !(*this > rhs);
+    }
+
+    constexpr reference operator[](difference_type i) {
+        return (getter_iter_[i])(*tuple_ptr_);
     }
 
     // NOTE: operator-> is not defined because there is no way to make it
@@ -161,6 +209,14 @@ class TupleIterator {
     T* tuple_ptr_;
     GetterIter getter_iter_;
 };
+
+template <typename U>
+constexpr TupleIterator<U> operator+(
+        typename TupleIterator<U>::difference_type n,
+        const TupleIterator<U>& i) {
+    TupleIterator i_plus_n = i;
+    return i + n;
+}
 
 template <typename T>
 constexpr bool operator==(const TupleIterator<T>& lhs,

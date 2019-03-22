@@ -1,7 +1,3 @@
 #!/usr/bin/env bash
 mkdir -p build
-cd build
-cmake ..
-make
-cd ..
-./build/bin/unit_tests
+cmake -B build . && make -C build && ./build/bin/unit_tests
