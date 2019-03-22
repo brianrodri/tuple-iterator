@@ -158,8 +158,6 @@ class TupleIterator {
     friend constexpr bool operator==(std::nullptr_t lhs,
                                      const TupleIterator<U>& rhs);
 
-    constexpr bool IsEnd() const { return getter_iter_ == kGetters.cend(); }
-
     T* tuple_ptr_;
     GetterIter getter_iter_;
 };
