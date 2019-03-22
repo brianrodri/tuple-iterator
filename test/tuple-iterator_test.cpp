@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <functional>
 #include <iterator>
 #include <vector>
 #include "gtest/gtest.h"
@@ -13,6 +14,12 @@ class TupleIteratorTest : public ::testing::Test {
     Tuple tuple_{1, {1.61803, 2.71828, 3.14159}, "inf"};
     TupleRange tuple_range_{tuple_};
 };
+
+TEST_F(TupleIteratorTest, SizeOfIteratorIsTwoPointers) {
+    const TupleIterator tuple_begin = tuple_range_.begin();
+
+    EXPECT_EQ(sizeof(tuple_begin), 2 * sizeof(void*));
+}
 
 TEST_F(TupleIteratorTest, CopyConstructibleConceptSatisfied) {
     const TupleIterator tuple_begin = tuple_range_.begin();
@@ -87,11 +94,7 @@ TEST_F(TupleIteratorTest, ForwardIteratorConceptSatisfied) {
     EXPECT_EQ(i++, tuple_range_.begin());
     EXPECT_EQ(i, std::next(tuple_range_.begin()));
 
-    /* TODO: Add dereference tests.
-    i = tuple_range_.begin();
-    EXPECT_EQ(*i++, *tuple_range_.begin());
-    EXPECT_EQ(*i, *std::next(tuple_range_.begin()));
-    */
+    // TODO: Add dereference tests.
 }
 
 TEST_F(TupleIteratorTest, BidirectionalIteratorConceptSatisfied) {
@@ -109,9 +112,5 @@ TEST_F(TupleIteratorTest, BidirectionalIteratorConceptSatisfied) {
     };
     EXPECT_EQ(equivalent_expression(), j--);
 
-    /* TODO: Add dereference tests.
-    i = tuple_range_.end();
-    EXPECT_EQ(*i--, *tuple_range_.end());
-    EXPECT_EQ(*i, *std::next(tuple_range_.end()));
-    */
+    // TODO: Add dereference tests.
 }
