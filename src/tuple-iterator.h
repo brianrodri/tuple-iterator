@@ -28,7 +28,7 @@ struct IterTraitsImpl {
 
   public:
     using ReferenceType =
-		decltype(ReferenceTypeImpl(std::make_index_sequence<std::tuple_size_v<T>>()));
+        decltype(ReferenceTypeImpl(std::make_index_sequence<std::tuple_size_v<T>>()));
     using ValueType = ReferenceType;
 };
 
@@ -75,9 +75,9 @@ class TupleIterator {
     using difference_type = typename std::iterator_traits<GetterIter>::difference_type;
     using iterator_category = typename std::iterator_traits<GetterIter>::iterator_category;
 
-	// Returns a *singular iterator*, that is, an iterator that is not associated with any tuple.
-	// Such instances are semantically equivalent to nullptr, and should therefore never be
-	// incremented or dereferenced; only reassignment is allowed.
+    // Returns a *singular iterator*, that is, an iterator that is not associated with any tuple.
+    // Such instances are semantically equivalent to nullptr, and should therefore never be
+    // incremented or dereferenced; only reassignment is allowed.
     //
     // You can check if an instance is singular by comparing it against std::nullptr_t.
     constexpr explicit TupleIterator(std::nullptr_t _ = nullptr)
