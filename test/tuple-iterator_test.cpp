@@ -110,3 +110,9 @@ TEST_F(TupleIteratorTest, BidirectionalIteratorConceptSatisfied) {
 
     // TODO: Add dereference tests.
 }
+
+TEST_F(TupleIteratorTest, RandomAccessIteratorConceptSatisfied) {
+    TupleIterator i = tuple_range_.begin();
+
+    i += 2;
+}
