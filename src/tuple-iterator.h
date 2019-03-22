@@ -69,7 +69,7 @@ class TupleIterator {
     // Type aliases expected by the standard.
     using value_type = typename detail::IterTraitsImpl<T>::ValueType;
     using reference = typename detail::IterTraitsImpl<T>::ReferenceType;
-    using pointer = typename std::iterator_traits<GetterIter>::pointer;;
+    using pointer = typename std::iterator_traits<GetterIter>::pointer;
     using difference_type = typename std::iterator_traits<GetterIter>::difference_type;
     using iterator_category = typename std::iterator_traits<GetterIter>::iterator_category;
 
