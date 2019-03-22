@@ -83,7 +83,7 @@ class TupleIterator {
     constexpr explicit TupleIterator(std::nullptr_t _ = nullptr)
         : tuple_ptr_{nullptr}, getter_iter_{std::cend(kGetters)} {}
 
-    constexpr ~TupleIterator() = default;
+    ~TupleIterator() = default;
 
     constexpr TupleIterator(const TupleIterator<T>& src) = default;
     constexpr TupleIterator(TupleIterator<T>&& src) = default;
