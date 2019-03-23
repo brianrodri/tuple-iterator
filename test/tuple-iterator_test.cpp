@@ -114,23 +114,25 @@ TEST_F(TupleIteratorTest, BidirectionalIteratorConceptSatisfied) {
 TEST_F(TupleIteratorTest, RandomAccessIteratorConceptSatisfied) {
     // Test for addition
     {
-        TupleIterator i = tuple_range_.begin();
-        i += 2;
-        TupleIterator j = i + 2;
-        TupleIterator k = 2 + i;
+        TupleIterator i = tuple_range_.begin() += 2;
+        TupleIterator j = tuple_range_.begin() + 2;
+        TupleIterator k = 2 + tuple_range_.begin();
+		EXPECT_EQ(i, j);
+		EXPECT_EQ(i, k);
+		EXPECT_EQ(j, k);
     }
     // Test for subtraction
     {
-        TupleIterator i = tuple_range_.end();
-        i -= 2;
-        TupleIterator j = i - 2;
+        TupleIterator i = tuple_range_.end() -= 2;
+        TupleIterator j = tuple_range_.end() - 2;
+		EXPECT_EQ(i, j);
     }
     // Test for difference
     {
         EXPECT_EQ(tuple_range_.end() - tuple_range_.begin(), 3);
     }
-    // Test for index-based access
+    // Test for index-access
     {
-        auto e = tuple_range_.begin()[2];
+		TupleIterator::reference e = tuple_range_.begin()[2];
     }
 }
