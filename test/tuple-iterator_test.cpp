@@ -114,7 +114,8 @@ TEST_F(TupleIteratorTest, BidirectionalIteratorConceptSatisfied) {
 TEST_F(TupleIteratorTest, RandomAccessIteratorConceptSatisfied) {
     // Test for addition
     {
-        TupleIterator i = tuple_range_.begin() += 2;
+        TupleIterator i = tuple_range_.begin();
+        i += 2;
         TupleIterator j = tuple_range_.begin() + 2;
         TupleIterator k = 2 + tuple_range_.begin();
         EXPECT_EQ(i, j);
@@ -123,7 +124,8 @@ TEST_F(TupleIteratorTest, RandomAccessIteratorConceptSatisfied) {
     }
     // Test for subtraction
     {
-        TupleIterator i = tuple_range_.end() -= 2;
+        TupleIterator i = tuple_range_.end();
+        i -= 2;
         TupleIterator j = tuple_range_.end() - 2;
         EXPECT_EQ(i, j);
     }
