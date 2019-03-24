@@ -81,8 +81,7 @@ class TupleIterator {
     // incremented or dereferenced; only reassignment is allowed.
     //
     // You can check if an instance is singular by comparing it against std::nullptr_t.
-    constexpr explicit TupleIterator()
-        : tuple_ptr_{nullptr}, getter_itr_{std::cend(kGetters)} {}
+    constexpr explicit TupleIterator() : tuple_ptr_{nullptr}, getter_itr_{std::cend(kGetters)} {}
 
     ~TupleIterator() = default;
     constexpr TupleIterator(const TupleIterator& src) = default;
