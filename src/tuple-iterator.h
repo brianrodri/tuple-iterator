@@ -81,7 +81,7 @@ class TupleIterator {
     // incremented or dereferenced; only reassignment is allowed.
     //
     // You can check if an instance is singular by comparing it against std::nullptr_t.
-    constexpr explicit TupleIterator(std::nullptr_t _ = nullptr)
+    constexpr explicit TupleIterator()
         : tuple_ptr_{nullptr}, getter_itr_{std::cend(kGetters)} {}
 
     ~TupleIterator() = default;
@@ -142,8 +142,7 @@ class TupleIterator {
 
   private:
     // This constructor will be called by the TupleRange class methods.
-    constexpr TupleIterator(TupleLike* t, GetterIter i)
-        : tuple_ptr_{t}, getter_itr_{tuple_ptr_ == nullptr ? std::cend(kGetters) : i} {};
+    constexpr TupleIterator(TupleLike& t, GetterIter i) : tuple_ptr_{&t}, getter_itr_{i} {};
 
     // Provides interface for creating tuple iterators.
     friend class TupleRange<TupleLike>;
@@ -208,16 +207,16 @@ class TupleRange {
     using Iterator = TupleIterator<TupleLike>;
 
   public:
-    constexpr TupleRange(TupleLike& t) : tuple_ptr_(&t) {}
+    constexpr TupleRange(TupleLike& t) : tuple_ref_(t) {}
 
-    constexpr Iterator begin() const { return {tuple_ptr_, std::cbegin(Iterator::kGetters)}; }
-    constexpr Iterator end() const { return {tuple_ptr_, std::cend(Iterator::kGetters)}; }
+    constexpr Iterator begin() const { return {tuple_ref_, std::cbegin(Iterator::kGetters)}; }
+    constexpr Iterator end() const { return {tuple_ref_, std::cend(Iterator::kGetters)}; }
 
     static constexpr Iterator begin(TupleLike& t) { return TupleRange{t}.begin(); }
     static constexpr Iterator end(TupleLike& t) { return TupleRange{t}.end(); }
 
   private:
-    TupleLike* tuple_ptr_;
+    TupleLike& tuple_ref_;
 };
 
 }  // namespace tuple_ext
