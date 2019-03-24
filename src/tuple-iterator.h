@@ -39,19 +39,21 @@ struct GetterImpl {
     using ReferenceType = typename IterTraitsImpl<TupleLike>::ReferenceType;
 
   public:
-    using GetterPointer = ReferenceType(*)(TupleLike&);
-    using GetterArray = std::array<const GetterPointer, std::tuple_size_v<TupleLike>>;
+    using GetterPointer = ReferenceType(* const)(TupleLike&);
+    using GetterArray = std::array<GetterPointer, std::tuple_size_v<TupleLike>>;
 
-    static constexpr const GetterArray MakeGetters() {
+    static constexpr GetterArray MakeGetters() {
         return MakeGettersImpl(std::make_index_sequence<std::tuple_size_v<TupleLike>>());
     }
 
   private:
     template <size_t... I>
-    static constexpr const GetterArray MakeGettersImpl(std::index_sequence<I...> _) {
+    static constexpr GetterArray MakeGettersImpl(std::index_sequence<I...> _) {
         return {
-            +[](TupleLike& t) constexpr { return ReferenceType{std::get<I>(t)}; }
-            ...
+            +[](TupleLike& t) constexpr -> ReferenceType {
+                return {std::reference_wrapper(std::get<I>(t))};
+            }
+            ...  // Expands to one function pointer for each index I.
         };
     }
 };
@@ -147,81 +149,79 @@ class TupleIterator {
     friend class TupleRange<TupleLike>;
 
     // Provides interface for comparing tuple iterators.
-    template <typename U>
-    friend constexpr bool operator==(const TupleIterator<U>& lhs, const TupleIterator<U>& rhs);
-    template <typename U>
-    friend constexpr bool operator==(const TupleIterator<U>& lhs, std::nullptr_t rhs);
-    template <typename U>
-    friend constexpr bool operator==(std::nullptr_t lhs, const TupleIterator<U>& rhs);
+    template <typename T>
+    friend constexpr bool operator==(const TupleIterator<T>& lhs, const TupleIterator<T>& rhs);
+    template <typename T>
+    friend constexpr bool operator==(const TupleIterator<T>& lhs, std::nullptr_t rhs);
+    template <typename T>
+    friend constexpr bool operator==(std::nullptr_t lhs, const TupleIterator<T>& rhs);
 
     TupleLike* tuple_ptr_;
     GetterIter getter_itr_;
 };
 
-template <typename U>
-constexpr TupleIterator<U> operator+(typename TupleIterator<U>::difference_type n,
-                                     const TupleIterator<U>& i) {
-    return TupleIterator{i} + n;
-}
-
-template <typename TupleLike>
-constexpr bool operator==(const TupleIterator<TupleLike>& lhs,
-                          const TupleIterator<TupleLike>& rhs) {
+template <typename T>
+constexpr bool operator==(const TupleIterator<T>& lhs, const TupleIterator<T>& rhs) {
     return lhs.tuple_ptr_ == rhs.tuple_ptr_ && lhs.getter_itr_ == rhs.getter_itr_;
 }
 
-template <typename TupleLike, typename U>
-constexpr bool operator==(const TupleIterator<TupleLike>& lhs, const TupleIterator<U>& rhs) {
+template <typename T, typename U>
+constexpr bool operator==(const TupleIterator<T>& lhs, const TupleIterator<T>& rhs) {
     return false;
 }
 
-template <typename TupleLike>
-constexpr bool operator==(const TupleIterator<TupleLike>& lhs, std::nullptr_t rhs) {
+template <typename T>
+constexpr bool operator==(const TupleIterator<T>& lhs, std::nullptr_t rhs) {
     return lhs.tuple_ptr_ == rhs;
 }
 
-template <typename TupleLike>
-constexpr bool operator==(std::nullptr_t lhs, const TupleIterator<TupleLike>& rhs) {
+template <typename T>
+constexpr bool operator==(std::nullptr_t lhs, const TupleIterator<T>& rhs) {
     return lhs == rhs.tuple_ptr_;
 }
 
-template <typename TupleLike, typename U>
-constexpr bool operator!=(const TupleIterator<TupleLike>& lhs, const TupleIterator<U>& rhs) {
+template <typename T, typename U>
+constexpr bool operator!=(const TupleIterator<T>& lhs, const TupleIterator<U>& rhs) {
     return !(lhs == rhs);
 }
 
-template <typename TupleLike>
-constexpr bool operator!=(const TupleIterator<TupleLike>& lhs, std::nullptr_t rhs) {
+template <typename T>
+constexpr bool operator!=(const TupleIterator<T>& lhs, std::nullptr_t rhs) {
     return !(lhs == rhs);
 }
 
-template <typename TupleLike>
-constexpr bool operator!=(std::nullptr_t lhs, const TupleIterator<TupleLike>& rhs) {
+template <typename T>
+constexpr bool operator!=(std::nullptr_t lhs, const TupleIterator<T>& rhs) {
     return !(lhs == rhs);
+}
+
+template <typename T>
+constexpr TupleIterator<T> operator+(
+        typename std::iterator_traits<TupleIterator<T>>::difference_type n,
+        const TupleIterator<T>& i) {
+    return i + n;
 }
 
 // Provides interface for creating tuple iterators.
 template <typename TupleLike>
 class TupleRange {
+    using Iterator = TupleIterator<TupleLike>;
+
   public:
     constexpr TupleRange(TupleLike& t) : tuple_ptr_(&t) {}
 
-    constexpr TupleIterator<TupleLike> begin() const {
-        return {tuple_ptr_, std::cbegin(TupleIterator<TupleLike>::kGetters)};
-    }
+    constexpr Iterator begin() const { return {tuple_ptr_, std::cbegin(Iterator::kGetters)}; }
+    constexpr Iterator end() const { return {tuple_ptr_, std::cend(Iterator::kGetters)}; }
 
-    constexpr TupleIterator<TupleLike> end() const {
-        return {tuple_ptr_, std::cend(TupleIterator<TupleLike>::kGetters)};
-    }
-
-    static constexpr TupleIterator<TupleLike> begin(TupleLike& t) { return TupleRange{t}.begin(); }
-    static constexpr TupleIterator<TupleLike> end(TupleLike& t) { return TupleRange{t}.end(); }
+    static constexpr Iterator begin(TupleLike& t) { return TupleRange{t}.begin(); }
+    static constexpr Iterator end(TupleLike& t) { return TupleRange{t}.end(); }
 
     template <typename VisitorImpl>
-    static constexpr decltype(auto) MakeVisitor(VisitorImpl&& v) {
-        using ReferenceType = typename TupleIterator<TupleLike>::reference;
-        return [v=std::forward<VisitorImpl>(v)](ReferenceType& iter_ref) {
-            return std::visit(v, iter_ref);
+    static constexpr decltype(auto) MakeIteratorVisitor(VisitorImpl&& v) {
+        // NOTE: ReferenceType is like std::variant<std::reference_wrapper<Ts>...>.
+        using ReferenceType = typename std::iterator_traits<Iterator>::reference;
+        return [v=std::forward<VisitorImpl>(v)](ReferenceType& ref_variant) {
+            return std::visit(v, ref_variant);
         };
     }
 
