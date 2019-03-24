@@ -74,9 +74,9 @@ class TupleIterator {
     using difference_type = typename std::iterator_traits<GetterIter>::difference_type;
     using iterator_category = typename std::iterator_traits<GetterIter>::iterator_category;
 
-	// Returns a *singular iterator*, that is, an iterator that is not associated with any tuple.
-	// Such instances are semantically equivalent to nullptr, and should therefore never be
-	// incremented or dereferenced; only reassignment is allowed.
+    // Returns a *singular iterator*, that is, an iterator that is not associated with any tuple.
+    // Such instances are semantically equivalent to nullptr, and should therefore never be
+    // incremented or dereferenced; only reassignment is allowed.
     //
     // You can check if an instance is singular by comparing it against std::nullptr_t.
     constexpr explicit TupleIterator(std::nullptr_t _ = nullptr)
@@ -128,15 +128,15 @@ class TupleIterator {
         return getter_itr_ >= rhs.getter_itr_;
     }
 
-	// NOTE: operator-> is not defined because there is no way to make it standard-compliant.
+    // NOTE: operator-> is not defined because there is no way to make it standard-compliant.
     //
-	// The standard expects that values returned by operator-> may eventually be resolved by 1+
-	// repeated applications. However, we can only return a std::variant of pointers. This implies
-	// that eventually, a call to std::visit *must be made*.
+    // The standard expects that values returned by operator-> may eventually be resolved by 1+
+    // repeated applications. However, we can only return a std::variant of pointers. This implies
+    // that eventually, a call to std::visit *must be made*.
     //
-	// For now, I've chosen to simply leave out the definition of operator-> while keeping the
-	// definition of a "pointer"-type. I kept the pointer-type because it is required by
-	// std::distance.
+    // For now, I've chosen to simply leave out the definition of operator-> while keeping the
+    // definition of a "pointer"-type. I kept the pointer-type because it is required by
+    // std::distance.
 
   private:
     // This constructor will be called by the TupleRange class methods.
