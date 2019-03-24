@@ -85,10 +85,10 @@ class TupleIterator {
         : tuple_ptr_{nullptr}, getter_itr_{std::cend(kGetters)} {}
 
     ~TupleIterator() = default;
-    constexpr TupleIterator(const TupleIterator<TupleLike>& src) = default;
-    constexpr TupleIterator(TupleIterator<TupleLike>&& src) = default;
-    constexpr TupleIterator& operator=(const TupleIterator<TupleLike>& src) = default;
-    constexpr TupleIterator& operator=(TupleIterator<TupleLike>&& src) = default;
+    constexpr TupleIterator(const TupleIterator& src) = default;
+    constexpr TupleIterator(TupleIterator&& src) = default;
+    constexpr TupleIterator& operator=(const TupleIterator& src) = default;
+    constexpr TupleIterator& operator=(TupleIterator&& src) = default;
 
     constexpr TupleIterator& operator=(std::nullptr_t _) {
         tuple_ptr_ = nullptr;
@@ -166,7 +166,7 @@ constexpr bool operator==(const TupleIterator<T>& lhs, const TupleIterator<T>& r
 }
 
 template <typename T, typename U>
-constexpr bool operator==(const TupleIterator<T>& lhs, const TupleIterator<T>& rhs) {
+constexpr bool operator==(const TupleIterator<T>& lhs, const TupleIterator<U>& rhs) {
     return false;
 }
 
@@ -215,15 +215,6 @@ class TupleRange {
 
     static constexpr Iterator begin(TupleLike& t) { return TupleRange{t}.begin(); }
     static constexpr Iterator end(TupleLike& t) { return TupleRange{t}.end(); }
-
-    template <typename VisitorImpl>
-    static constexpr decltype(auto) MakeIteratorVisitor(VisitorImpl&& v) {
-        // NOTE: ReferenceType is like std::variant<std::reference_wrapper<Ts>...>.
-        using ReferenceType = typename std::iterator_traits<Iterator>::reference;
-        return [v=std::forward<VisitorImpl>(v)](ReferenceType& ref_variant) {
-            return std::visit(v, ref_variant);
-        };
-    }
 
   private:
     TupleLike* tuple_ptr_;
