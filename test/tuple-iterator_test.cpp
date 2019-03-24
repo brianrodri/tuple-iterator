@@ -117,15 +117,15 @@ TEST_F(TupleIteratorTest, RandomAccessIteratorConceptSatisfied) {
         TupleIterator i = tuple_range_.begin() += 2;
         TupleIterator j = tuple_range_.begin() + 2;
         TupleIterator k = 2 + tuple_range_.begin();
-		EXPECT_EQ(i, j);
-		EXPECT_EQ(i, k);
-		EXPECT_EQ(j, k);
+        EXPECT_EQ(i, j);
+        EXPECT_EQ(i, k);
+        EXPECT_EQ(j, k);
     }
     // Test for subtraction
     {
         TupleIterator i = tuple_range_.end() -= 2;
         TupleIterator j = tuple_range_.end() - 2;
-		EXPECT_EQ(i, j);
+        EXPECT_EQ(i, j);
     }
     // Test for difference
     {
@@ -133,6 +133,6 @@ TEST_F(TupleIteratorTest, RandomAccessIteratorConceptSatisfied) {
     }
     // Test for index-access
     {
-		TupleIterator::reference e = tuple_range_.begin()[2];
+        TupleIterator::reference e = tuple_range_.begin()[2];
     }
 }
