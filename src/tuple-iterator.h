@@ -89,12 +89,6 @@ class TupleIterator {
     constexpr TupleIterator& operator=(const TupleIterator& src) = default;
     constexpr TupleIterator& operator=(TupleIterator&& src) = default;
 
-    constexpr TupleIterator& operator=(std::nullptr_t _) {
-        tuple_ptr_ = nullptr;
-        getter_itr_ = std::cend(kGetters);
-        return *this;
-    }
-
     constexpr reference operator*() { return *getter_itr_(*tuple_ptr_); }
     constexpr reference operator[](difference_type i) { return getter_itr_[i](*tuple_ptr_); }
     constexpr TupleIterator& operator++() { ++getter_itr_; return *this; }
