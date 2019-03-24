@@ -217,6 +217,14 @@ class TupleRange {
     static constexpr TupleIterator<TupleLike> begin(TupleLike& t) { return TupleRange{t}.begin(); }
     static constexpr TupleIterator<TupleLike> end(TupleLike& t) { return TupleRange{t}.end(); }
 
+    template <typename VisitorImpl>
+    static constexpr decltype(auto) MakeVisitor(VisitorImpl&& v) {
+        using ReferenceType = typename TupleIterator<TupleLike>::reference;
+        return [v=std::forward<VisitorImpl>(v)](ReferenceType& iter_ref) {
+            return std::visit(v, iter_ref);
+        };
+    }
+
   private:
     TupleLike* tuple_ptr_;
 };
