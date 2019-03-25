@@ -71,15 +71,13 @@ class TupleIterator {
     using difference_type = typename std::iterator_traits<GetterItr>::difference_type;
     using iterator_category = typename std::iterator_traits<GetterItr>::iterator_category;
 
-    // Returns a *singular iterator*, that is, an iterator that is not associated with any tuple.
-    // Such instances are semantically equivalent to nullptr, and should therefore never be modified
-    // or dereferenced; only reassignment is allowed.
-    //
-    // You can check if an instance is singular by comparing it against std::nullptr_t.
-    constexpr TupleIterator() : tuple_ptr_{nullptr}, getter_itr_{std::cend(kGetters)} {}
-
     // Provides the interface for creating tuple iterators.
     friend class TupleRange<TupleLike>;
+
+    // Returns a singular iterator, that is, an iterator that is not associated with any tuple.
+    // Such instances are semantically equivalent to nullptr, and should therefore never be modified
+    // or dereferenced; only reassignment is allowed.
+    constexpr TupleIterator() : tuple_ptr_{nullptr}, getter_itr_{std::cend(kGetters)} {}
 
     ~TupleIterator() = default;
     constexpr TupleIterator(const TupleIterator& src) = default;
@@ -97,11 +95,7 @@ class TupleIterator {
     // that eventually, a call to std::visit *must be made*.
     //
     // For now, I've chosen to simply leave out the definition of operator-> while keeping the
-    // definition of a "pointer"-type. I kept the pointer-type because it is required by
-    // std::distance.
-
-    constexpr reference operator*() const { return this->operator*(); }
-    constexpr reference operator[](difference_type i) const { return this->operator[](i); }
+    // definition of a "pointer"-type, because it is required by std::distance.
 
     // Returns the distance from the given iterator.
     constexpr difference_type operator-(const TupleIterator& rhs) const {
@@ -113,10 +107,8 @@ class TupleIterator {
     constexpr TupleIterator& operator+=(difference_type n) { getter_itr_ += n; return *this; }
     constexpr TupleIterator& operator-=(difference_type n) { getter_itr_ -= n; return *this; }
 
-    constexpr TupleIterator operator++(int _) { TupleIterator i{*this}; ++(*this); return i; }
-    constexpr TupleIterator operator--(int _) { TupleIterator i{*this}; --(*this); return i; }
-    constexpr TupleIterator operator+(difference_type n) const { return TupleIterator{*this} += n; }
-    constexpr TupleIterator operator-(difference_type n) const { return TupleIterator{*this} -= n; }
+    // Returns whether this iterator is singular.
+    constexpr bool operator==(std::nullptr_t rhs) const { return tuple_ptr_ == rhs; }
 
     constexpr bool operator==(const TupleIterator& rhs) const {
         return tuple_ptr_ == rhs.tuple_ptr_ && getter_itr_ == rhs.getter_itr_;
@@ -127,14 +119,21 @@ class TupleIterator {
                                             : tuple_ptr_ < rhs.tuple_ptr_;
     }
 
+    // All of the following operators are derived from those defined above.
+
+    constexpr reference operator*() const { return this->operator*(); }
+    constexpr reference operator[](difference_type i) const { return this->operator[](i); }
+
+    constexpr TupleIterator operator++(int _) { TupleIterator i{*this}; ++(*this); return i; }
+    constexpr TupleIterator operator--(int _) { TupleIterator i{*this}; --(*this); return i; }
+    constexpr TupleIterator operator+(difference_type n) const { return TupleIterator{*this} += n; }
+    constexpr TupleIterator operator-(difference_type n) const { return TupleIterator{*this} -= n; }
+
+    constexpr bool operator!=(std::nullptr_t rhs) const { return !(*this == rhs); }
     constexpr bool operator!=(const TupleIterator& rhs) const { return !(*this == rhs); }
     constexpr bool operator>(const TupleIterator& rhs) const { return rhs < *this; }
     constexpr bool operator<=(const TupleIterator& rhs) const { return !(rhs < *this); }
     constexpr bool operator>=(const TupleIterator& rhs) const { return !(*this < rhs); }
-
-    // Allows comparison against nullptr to test whether the iterator is singular.
-    template <typename T> friend constexpr bool operator==(const TupleIterator<T>&, std::nullptr_t);
-    template <typename T> friend constexpr bool operator==(std::nullptr_t, const TupleIterator<T>&);
 
   private:
     // This constructor is called by TupleRange<T>.
@@ -144,19 +143,11 @@ class TupleIterator {
     GetterItr getter_itr_;
 };
 
-template <typename TupleLike>
-constexpr bool operator==(const TupleIterator<TupleLike>& lhs, std::nullptr_t rhs) {
-    return lhs.tuple_ptr_ == rhs;
-}
-
-template <typename TupleLike>
-constexpr bool operator!=(const TupleIterator<TupleLike>& lhs, std::nullptr_t rhs) {
-    return !(lhs == rhs);
-}
+// The following operators are defined as free functions because they can not be defined as members.
 
 template <typename TupleLike>
 constexpr bool operator==(std::nullptr_t lhs, const TupleIterator<TupleLike>& rhs) {
-    return lhs == rhs.tuple_ptr_;
+    return rhs.tuple_ptr_ == lhs;
 }
 
 template <typename TupleLike>
