@@ -21,7 +21,7 @@ namespace detail {
 // std::tuple, std::pair, and std::array define these overloads by default, but you can create
 // overloads for your own custom classes as necessary.
 template <typename TupleLike>
-struct IterTraitsImpl {
+struct ItrTraitsImpl {
   private:
     template <size_t... I> static constexpr auto ReferenceTypeImpl(std::index_sequence<I...> _) ->
         std::variant<std::reference_wrapper<std::tuple_element_t<I, TupleLike>>...>;
@@ -35,18 +35,15 @@ struct IterTraitsImpl {
 // Builds an array of std::get accessors for the given type TupleLike.
 template <typename TupleLike>
 struct GetterImpl {
-  private:
-    using ReferenceType = typename IterTraitsImpl<TupleLike>::ReferenceType;
-
-  public:
-    using GetterPointer = ReferenceType(* const)(TupleLike&);
-    using GetterArray = std::array<GetterPointer, std::tuple_size_v<TupleLike>>;
-
-    static constexpr GetterArray MakeGetters() {
+    static constexpr auto MakeGetters() {
         return MakeGettersImpl(std::make_index_sequence<std::tuple_size_v<TupleLike>>());
     }
 
   private:
+    using ReferenceType = typename ItrTraitsImpl<TupleLike>::ReferenceType;
+    using GetterPtr = ReferenceType(*)(TupleLike&);
+    using GetterArray = std::array<const GetterPtr, std::tuple_size_v<TupleLike>>;
+
     template <size_t... I>
     static constexpr GetterArray MakeGettersImpl(std::index_sequence<I...> _) {
         return {
@@ -67,14 +64,14 @@ class TupleRange;
 template <typename TupleLike>
 class TupleIterator {
     static constexpr const auto kGetters = detail::GetterImpl<TupleLike>::MakeGetters();
-    using GetterIter = typename decltype(kGetters)::const_iterator;
+    using GetterItr = typename decltype(kGetters)::const_iterator;
 
   public:
-    using reference = typename detail::IterTraitsImpl<TupleLike>::ReferenceType;
-    using value_type = typename detail::IterTraitsImpl<TupleLike>::ValueType;
-    using pointer = typename std::iterator_traits<GetterIter>::pointer;
-    using difference_type = typename std::iterator_traits<GetterIter>::difference_type;
-    using iterator_category = typename std::iterator_traits<GetterIter>::iterator_category;
+    using reference = typename detail::ItrTraitsImpl<TupleLike>::ReferenceType;
+    using value_type = typename detail::ItrTraitsImpl<TupleLike>::ValueType;
+    using pointer = typename std::iterator_traits<GetterItr>::pointer;
+    using difference_type = typename std::iterator_traits<GetterItr>::difference_type;
+    using iterator_category = typename std::iterator_traits<GetterItr>::iterator_category;
 
     // Returns a *singular iterator*, that is, an iterator that is not associated with any tuple.
     // Such instances are semantically equivalent to nullptr, and should therefore never be
@@ -82,6 +79,9 @@ class TupleIterator {
     //
     // You can check if an instance is singular by comparing it against std::nullptr_t.
     constexpr TupleIterator() : tuple_ptr_{nullptr}, getter_itr_{std::cend(kGetters)} {}
+
+    // Provides the interface for creating tuple iterators.
+    friend class TupleRange<TupleLike>;
 
     ~TupleIterator() = default;
     constexpr TupleIterator(const TupleIterator& src) = default;
@@ -99,13 +99,22 @@ class TupleIterator {
     constexpr TupleIterator& operator-=(difference_type n) { getter_itr_ -= n; return *this; }
 
     constexpr reference operator*() const { return *(*this); }
-    constexpr reference operator[](difference_type i) const { return (*this)[i](*tuple_ptr_); }
+    constexpr reference operator[](difference_type i) const { return (*this)[i]; }
     constexpr TupleIterator operator+(difference_type n) const { return TupleIterator{*this} += n; }
     constexpr TupleIterator operator-(difference_type n) const { return TupleIterator{*this} -= n; }
 
     constexpr difference_type operator-(const TupleIterator& rhs) const {
         return getter_itr_ - rhs.getter_itr_;
     }
+
+    template <typename T>
+    friend constexpr bool operator==(const TupleIterator<T>& lhs, const TupleIterator<T>& rhs);
+
+    template <typename T>
+    friend constexpr bool operator==(const TupleIterator<T>& lhs, std::nullptr_t rhs);
+
+    template <typename T>
+    friend constexpr bool operator==(std::nullptr_t lhs, const TupleIterator<T>& rhs);
 
     constexpr bool operator<(const TupleIterator& rhs) const {
         return getter_itr_ < rhs.getter_itr_;
@@ -135,21 +144,10 @@ class TupleIterator {
 
   private:
     // This constructor will be called by the TupleRange class methods.
-    constexpr TupleIterator(TupleLike& t, GetterIter i) : tuple_ptr_{&t}, getter_itr_{i} {};
-
-    // Provides interface for creating tuple iterators.
-    friend class TupleRange<TupleLike>;
-
-    // Provides interface for comparing tuple iterators.
-    template <typename T>
-    friend constexpr bool operator==(const TupleIterator<T>& lhs, const TupleIterator<T>& rhs);
-    template <typename T>
-    friend constexpr bool operator==(const TupleIterator<T>& lhs, std::nullptr_t rhs);
-    template <typename T>
-    friend constexpr bool operator==(std::nullptr_t lhs, const TupleIterator<T>& rhs);
+    constexpr TupleIterator(TupleLike& t, GetterItr i) : tuple_ptr_{&t}, getter_itr_{i} {};
 
     TupleLike* tuple_ptr_;
-    GetterIter getter_itr_;
+    GetterItr getter_itr_;
 };
 
 template <typename T>
