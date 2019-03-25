@@ -16,52 +16,51 @@ class TupleIteratorTest : public ::testing::Test {
 };
 
 TEST_F(TupleIteratorTest, SizeOfIteratorIsTwoPointers) {
-    const TupleIterator tuple_begin = tuple_range_.begin();
-
-    EXPECT_EQ(sizeof(tuple_begin), 2 * sizeof(void*));
+    const TupleIterator i;
+    EXPECT_EQ(sizeof(i), 2 * sizeof(void*));
 }
 
 TEST_F(TupleIteratorTest, CopyConstructibleConceptSatisfied) {
-    const TupleIterator tuple_begin = tuple_range_.begin();
+    const TupleIterator i = tuple_range_.begin();
 
     // { T a = b; } -> { a == b; }
-    TupleIterator tuple_begin_copy = tuple_begin;
-    ASSERT_EQ(tuple_begin_copy, tuple_begin);
+    TupleIterator i_copy = i;
+    ASSERT_EQ(i_copy, i);
 
     // { T(a) == a; }
-    EXPECT_EQ(TupleIterator{tuple_begin}, tuple_begin);
+    EXPECT_EQ(TupleIterator{i}, i);
 }
 
 TEST_F(TupleIteratorTest, CopyAssignableConceptSatisfied) {
-    const TupleIterator tuple_begin = tuple_range_.begin();
+    const TupleIterator i = tuple_range_.begin();
 
-    TupleIterator tuple_iter = tuple_range_.end();
-    ASSERT_NE(tuple_iter, tuple_begin);
+    TupleIterator j;
+    ASSERT_NE(j, i);
 
     // { a = b; } -> { a == b }
-    tuple_iter = tuple_begin;
-    EXPECT_EQ(tuple_iter, tuple_begin);
+    j = i;
+    EXPECT_EQ(j, i);
 }
 
 TEST_F(TupleIteratorTest, SwappableConceptSatisfied) {
-    ASSERT_NE(tuple_range_.begin(), tuple_range_.end());
-    TupleIterator iter_a = tuple_range_.begin();
-    TupleIterator iter_b = tuple_range_.end();
+    TupleIterator i = tuple_range_.begin();
+    TupleIterator j = tuple_range_.end();
+    ASSERT_NE(i, j);
 
     using std::swap;
-    swap(iter_a, iter_b);
+    swap(i, j);
 
-    ASSERT_NE(iter_a, iter_b);
-    EXPECT_EQ(iter_a, tuple_range_.end());
-    EXPECT_EQ(iter_b, tuple_range_.begin());
+    ASSERT_NE(i, j);
+    EXPECT_EQ(i, tuple_range_.end());
+    EXPECT_EQ(j, tuple_range_.begin());
 }
 
 TEST_F(TupleIteratorTest, IteratorConceptSatisfied) {
-    TupleIterator iter = tuple_range_.begin();
+    TupleIterator i = tuple_range_.begin();
 
     using reference = typename std::iterator_traits<TupleIterator>::reference;
-    EXPECT_TRUE((std::is_same_v<decltype(*iter), reference>));
-    EXPECT_TRUE((std::is_same_v<decltype(++iter), TupleIterator&>));
+    EXPECT_TRUE((std::is_same_v<decltype(*i), reference>));
+    EXPECT_TRUE((std::is_same_v<decltype(++i), TupleIterator&>));
 }
 
 TEST_F(TupleIteratorTest, DefaultConstructibleConceptSatisfied) {
@@ -76,11 +75,11 @@ TEST_F(TupleIteratorTest, DefaultConstructibleConceptSatisfied) {
 }
 
 TEST_F(TupleIteratorTest, CopyEqualityConceptSatisfied) {
-    TupleIterator a = tuple_range_.begin();
-    TupleIterator b = tuple_range_.begin();
+    TupleIterator i = tuple_range_.begin();
+    TupleIterator j = tuple_range_.begin();
 
-    ASSERT_EQ(a, b);
-    EXPECT_EQ(++a, ++b);
+    ASSERT_EQ(i, j);
+    EXPECT_EQ(++i, ++j);
 }
 
 TEST_F(TupleIteratorTest, ForwardIteratorConceptSatisfied) {
