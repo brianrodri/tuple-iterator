@@ -123,7 +123,7 @@ TEST_F(TupleIteratorTest, RandomAccessIteratorConceptSatisfied) {
     // Test for subtraction
     {
         TupleIterator i = tuple_range_.end();
-        TupleIterator j = j - 2;
+        TupleIterator j = i - 2;
         i -= 2;
         EXPECT_EQ(i, j);
     }
