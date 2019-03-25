@@ -196,16 +196,16 @@ constexpr TupleIterator<T> operator+(
 // Provides interface for creating tuple iterators.
 template <typename TupleLike>
 class TupleRange {
-    using Itr = TupleIterator<TupleLike>;
+    using TupleItr = TupleIterator<TupleLike>;
 
   public:
     constexpr TupleRange(TupleLike& t) : tuple_ref_(t) {}
 
-    constexpr Itr begin() const { return {tuple_ref_, std::cbegin(Itr::kGetters)}; }
-    constexpr Itr end() const { return {tuple_ref_, std::cend(Itr::kGetters)}; }
+    constexpr TupleItr begin() const { return {tuple_ref_, std::cbegin(TupleItr::kGetters)}; }
+    constexpr TupleItr end() const { return {tuple_ref_, std::cend(TupleItr::kGetters)}; }
 
-    static constexpr Itr begin(TupleLike& t) { return TupleRange{t}.begin(); }
-    static constexpr Itr end(TupleLike& t) { return TupleRange{t}.end(); }
+    static constexpr TupleItr begin(TupleLike& t) { return TupleRange{t}.begin(); }
+    static constexpr TupleItr end(TupleLike& t) { return TupleRange{t}.end(); }
 
   private:
     TupleLike& tuple_ref_;
