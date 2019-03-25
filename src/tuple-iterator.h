@@ -123,13 +123,12 @@ class TupleIterator {
         return tuple_ptr_ == rhs.tuple_ptr_ && getter_itr_ == rhs.getter_itr_;
     }
 
-    constexpr bool operator!=(const TupleIterator& rhs) const { return !(*this == rhs); }
-
     constexpr bool operator<(const TupleIterator& rhs) const {
         return tuple_ptr_ == rhs.tuple_ptr_ ? getter_itr_ < rhs.getter_itr_
                                             : tuple_ptr_ < rhs.tuple_ptr_;
     }
 
+    constexpr bool operator!=(const TupleIterator& rhs) const { return !(*this == rhs); }
     constexpr bool operator>(const TupleIterator& rhs) const { return rhs < *this; }
     constexpr bool operator<=(const TupleIterator& rhs) const { return !(rhs < *this); }
     constexpr bool operator>=(const TupleIterator& rhs) const { return !(*this < rhs); }
