@@ -24,13 +24,12 @@ template <typename TupleLike>
 struct ItrTraitsImpl {
   private:
     template <size_t... I>
-    static constexpr auto ReferenceTypeImpl(std::index_sequence<I...> _) ->
+    static constexpr auto RefTypeImpl(std::index_sequence<I...> _) ->
         std::variant<std::reference_wrapper<std::tuple_element_t<I, TupleLike>>...>;
 
   public:
-    using ReferenceType =
-        decltype(ReferenceTypeImpl(std::make_index_sequence<std::tuple_size_v<TupleLike>>()));
-    using ValueType = ReferenceType;
+    using RefType = decltype(RefTypeImpl(std::make_index_sequence<std::tuple_size_v<TupleLike>>()));
+    using ValType = RefType;
 };
 
 // Builds an array of std::get accessors for the given type TupleLike.
@@ -41,16 +40,14 @@ struct GetterImpl {
     }
 
   private:
-    using ReferenceType = typename ItrTraitsImpl<TupleLike>::ReferenceType;
-    using GetterPtr = ReferenceType(*)(TupleLike&);
+    using RefType = typename ItrTraitsImpl<TupleLike>::RefType;
+    using GetterPtr = RefType(*)(TupleLike&);
     using GetterArray = std::array<const GetterPtr, std::tuple_size_v<TupleLike>>;
 
     template <size_t... I>
     static constexpr GetterArray MakeGettersImpl(std::index_sequence<I...> _) {
         return {
-            +[](TupleLike& t) constexpr -> ReferenceType {
-                return {std::reference_wrapper(std::get<I>(t))};
-            }
+            +[](TupleLike& t) constexpr { return RefType{std::reference_wrapper(std::get<I>(t))}; }
             ...  // Expands to one function pointer for each index I.
         };
     }
@@ -68,8 +65,8 @@ class TupleIterator {
     using GetterItr = typename decltype(kGetters)::const_iterator;
 
   public:
-    using reference = typename detail::ItrTraitsImpl<TupleLike>::ReferenceType;
-    using value_type = typename detail::ItrTraitsImpl<TupleLike>::ValueType;
+    using reference = typename detail::ItrTraitsImpl<TupleLike>::RefType;
+    using value_type = typename detail::ItrTraitsImpl<TupleLike>::ValType;
     using pointer = typename std::iterator_traits<GetterItr>::pointer;
     using difference_type = typename std::iterator_traits<GetterItr>::difference_type;
     using iterator_category = typename std::iterator_traits<GetterItr>::iterator_category;
@@ -187,9 +184,8 @@ constexpr bool operator!=(std::nullptr_t lhs, const TupleIterator<T>& rhs) {
 }
 
 template <typename T>
-constexpr TupleIterator<T> operator+(
-        typename std::iterator_traits<TupleIterator<T>>::difference_type n,
-        const TupleIterator<T>& i) {
+constexpr TupleIterator<T> operator+(typename TupleIterator<T>::difference_type n,
+                                     const TupleIterator<T>& i) {
     return i + n;
 }
 
@@ -199,7 +195,7 @@ class TupleRange {
     using TupleItr = TupleIterator<TupleLike>;
 
   public:
-    constexpr TupleRange(TupleLike& t) : tuple_ref_(t) {}
+    constexpr TupleRange(TupleLike& t) : tuple_ref_{t} {}
 
     constexpr TupleItr begin() const { return {tuple_ref_, std::cbegin(TupleItr::kGetters)}; }
     constexpr TupleItr end() const { return {tuple_ref_, std::cend(TupleItr::kGetters)}; }
