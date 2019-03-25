@@ -115,11 +115,13 @@ class TupleIterator {
     constexpr TupleIterator& operator-=(difference_type n) { getter_itr_ -= n; return *this; }
     constexpr TupleIterator operator-(difference_type n) const { return TupleIterator{*this} -= n; }
 
+    // Allows comparison against nullptr to test whether the iterator is singular.
+    template <typename T> friend constexpr bool operator==(const TupleIterator<T>&, std::nullptr_t);
+    template <typename T> friend constexpr bool operator==(std::nullptr_t, const TupleIterator<T>&);
+
     constexpr bool operator==(const TupleIterator& rhs) const {
         return tuple_ptr_ == rhs.tuple_ptr_ && getter_itr_ == rhs.getter_itr_;
     }
-
-    constexpr bool operator!=(const TupleIterator& rhs) const { return !(*this == rhs); }
 
     constexpr bool operator<(const TupleIterator& rhs) const {
         return tuple_ptr_ == rhs.tuple_ptr_ ? getter_itr_ < rhs.getter_itr_
@@ -129,9 +131,6 @@ class TupleIterator {
     constexpr bool operator>(const TupleIterator& rhs) const { return rhs < *this; }
     constexpr bool operator<=(const TupleIterator& rhs) const { return !(rhs < *this); }
     constexpr bool operator>=(const TupleIterator& rhs) const { return !(*this < rhs); }
-
-    template <typename T> friend constexpr bool operator==(const TupleIterator<T>&, std::nullptr_t);
-    template <typename T> friend constexpr bool operator==(std::nullptr_t, const TupleIterator<T>&);
 
     constexpr difference_type operator-(const TupleIterator& rhs) const {
         return getter_itr_ - rhs.getter_itr_;
@@ -145,39 +144,29 @@ class TupleIterator {
     GetterItr getter_itr_;
 };
 
-template <typename T, typename U>
-constexpr bool operator==(const TupleIterator<T>& lhs, const TupleIterator<U>& rhs) {
-    return false;
-}
-
-template <typename T>
-constexpr bool operator==(const TupleIterator<T>& lhs, std::nullptr_t rhs) {
+template <typename TupleLike>
+constexpr bool operator==(const TupleIterator<TupleLike>& lhs, std::nullptr_t rhs) {
     return lhs.tuple_ptr_ == rhs;
 }
 
-template <typename T>
-constexpr bool operator==(std::nullptr_t lhs, const TupleIterator<T>& rhs) {
+template <typename TupleLike>
+constexpr bool operator!=(const TupleIterator<TupleLike>& lhs, std::nullptr_t rhs) {
+    return !(lhs == rhs);
+}
+
+template <typename TupleLike>
+constexpr bool operator==(std::nullptr_t lhs, const TupleIterator<TupleLike>& rhs) {
     return lhs == rhs.tuple_ptr_;
 }
 
-template <typename T, typename U>
-constexpr bool operator!=(const TupleIterator<T>& lhs, const TupleIterator<U>& rhs) {
+template <typename TupleLike>
+constexpr bool operator!=(std::nullptr_t lhs, const TupleIterator<TupleLike>& rhs) {
     return !(lhs == rhs);
 }
 
-template <typename T>
-constexpr bool operator!=(const TupleIterator<T>& lhs, std::nullptr_t rhs) {
-    return !(lhs == rhs);
-}
-
-template <typename T>
-constexpr bool operator!=(std::nullptr_t lhs, const TupleIterator<T>& rhs) {
-    return !(lhs == rhs);
-}
-
-template <typename T>
-constexpr TupleIterator<T> operator+(typename TupleIterator<T>::difference_type n,
-                                     const TupleIterator<T>& i) {
+template <typename TupleLike>
+constexpr TupleIterator<TupleLike> operator+(typename TupleIterator<TupleLike>::difference_type n,
+                                             const TupleIterator<TupleLike>& i) {
     return i + n;
 }
 
