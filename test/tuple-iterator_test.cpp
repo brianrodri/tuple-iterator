@@ -33,11 +33,10 @@ TEST_F(TupleIteratorTest, CopyConstructibleConceptSatisfied) {
 
 TEST_F(TupleIteratorTest, CopyAssignableConceptSatisfied) {
     const TupleIterator i = tuple_range_.begin();
-
     TupleIterator j;
-    ASSERT_NE(j, i);
 
     // { a = b; } -> { a == b }
+    ASSERT_NE(j, i);
     j = i;
     EXPECT_EQ(j, i);
 }
@@ -50,9 +49,9 @@ TEST_F(TupleIteratorTest, SwappableConceptSatisfied) {
     using std::swap;
     swap(i, j);
 
-    ASSERT_NE(i, j);
     EXPECT_EQ(i, tuple_range_.end());
     EXPECT_EQ(j, tuple_range_.begin());
+    ASSERT_NE(i, j);
 }
 
 TEST_F(TupleIteratorTest, IteratorConceptSatisfied) {
@@ -87,7 +86,7 @@ TEST_F(TupleIteratorTest, ForwardIteratorConceptSatisfied) {
     std::vector<TupleIterator> i_copies(3, i);
 
     EXPECT_EQ(++i, std::next(tuple_range_.begin()));
-    for (TupleIterator& j : i_copies) { EXPECT_EQ(j, tuple_range_.begin()); }
+    for (const TupleIterator& j : i_copies) { EXPECT_EQ(j, tuple_range_.begin()); }
 
     i = tuple_range_.begin();
     EXPECT_EQ(i++, tuple_range_.begin());
@@ -101,7 +100,7 @@ TEST_F(TupleIteratorTest, BidirectionalIteratorConceptSatisfied) {
     std::vector<TupleIterator> i_copies(3, i);
 
     EXPECT_EQ(--i, std::prev(tuple_range_.end()));
-    for (TupleIterator& j : i_copies) { EXPECT_EQ(j, tuple_range_.end()); }
+    for (const TupleIterator& j : i_copies) { EXPECT_EQ(j, tuple_range_.end()); }
 
     i = tuple_range_.end();
     EXPECT_EQ(i--, tuple_range_.end());
@@ -114,9 +113,9 @@ TEST_F(TupleIteratorTest, RandomAccessIteratorConceptSatisfied) {
     // Test for addition
     {
         TupleIterator i = tuple_range_.begin();
+        TupleIterator j = i + 2;
+        TupleIterator k = 2 + i;
         i += 2;
-        TupleIterator j = tuple_range_.begin() + 2;
-        TupleIterator k = 2 + tuple_range_.begin();
         EXPECT_EQ(i, j);
         EXPECT_EQ(i, k);
         EXPECT_EQ(j, k);
@@ -124,8 +123,8 @@ TEST_F(TupleIteratorTest, RandomAccessIteratorConceptSatisfied) {
     // Test for subtraction
     {
         TupleIterator i = tuple_range_.end();
+        TupleIterator j = j - 2;
         i -= 2;
-        TupleIterator j = tuple_range_.end() - 2;
         EXPECT_EQ(i, j);
     }
     // Test for difference
