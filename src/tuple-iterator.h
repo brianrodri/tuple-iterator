@@ -23,7 +23,8 @@ namespace detail {
 template <typename TupleLike>
 struct ItrTraitsImpl {
   private:
-    template <size_t... I> static constexpr auto ReferenceTypeImpl(std::index_sequence<I...> _) ->
+    template <size_t... I>
+    static constexpr auto ReferenceTypeImpl(std::index_sequence<I...> _) ->
         std::variant<std::reference_wrapper<std::tuple_element_t<I, TupleLike>>...>;
 
   public:
