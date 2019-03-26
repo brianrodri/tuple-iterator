@@ -145,21 +145,15 @@ class TupleIterator {
 
 // The following operators are defined as free functions because they can not be defined as members.
 
-template <typename TupleLike>
-constexpr bool operator==(std::nullptr_t lhs, const TupleIterator<TupleLike>& rhs) {
-    return rhs.tuple_ptr_ == lhs;
-}
+template <typename T>
+constexpr bool operator==(std::nullptr_t lhs, const TupleIterator<T>& rhs) { return rhs == lhs; }
 
-template <typename TupleLike>
-constexpr bool operator!=(std::nullptr_t lhs, const TupleIterator<TupleLike>& rhs) {
-    return !(lhs == rhs);
-}
+template <typename T>
+constexpr bool operator!=(std::nullptr_t lhs, const TupleIterator<T>& rhs) { return rhs != lhs; }
 
-template <typename TupleLike>
-constexpr TupleIterator<TupleLike> operator+(typename TupleIterator<TupleLike>::difference_type n,
-                                             const TupleIterator<TupleLike>& i) {
-    return i + n;
-}
+template <typename T>
+constexpr TupleIterator<T> operator+(
+        typename TupleIterator<T>::difference_type n, const TupleIterator<T>& i) { return i + n; }
 
 // Provides interface for creating tuple iterators.
 template <typename TupleLike>
