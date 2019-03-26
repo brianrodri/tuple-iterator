@@ -121,8 +121,8 @@ class TupleIterator {
 
     // All of the following operators are derived from those defined above.
 
-    constexpr reference operator*() const { return this->operator*(); }
-    constexpr reference operator[](difference_type i) const { return this->operator[](i); }
+    constexpr reference operator*() const { return *(*this); }
+    constexpr reference operator[](difference_type i) const { return (*this)[i]; }
 
     constexpr TupleIterator operator++(int _) { TupleIterator i{*this}; ++(*this); return i; }
     constexpr TupleIterator operator--(int _) { TupleIterator i{*this}; --(*this); return i; }
