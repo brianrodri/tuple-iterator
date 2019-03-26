@@ -1,22 +1,22 @@
 #ifndef BRIANRODRI_TUPLE_ITERATOR_TUPLE_ITERATOR_H
 #define BRIANRODRI_TUPLE_ITERATOR_TUPLE_ITERATOR_H
+#include <array>
+#include <cstddef>
 #include <functional>
-#include <iostream>
-#include <optional>
+#include <iterator>
 #include <tuple>
-#include <type_traits>
 #include <utility>
 #include <variant>
 
 namespace tuple_ext {
 namespace detail {
 
-// Exposes types required by TupleIterator to be standards-compliant.
+// Exposes types required by TupleIterator for standards-compliance.
 //
 // The types are derived from the given type parameter, which is assumed to be a "tuple-like"
 // structure. Specifically, `TupleLike` must satisfy the following:
-//   - std::get<I>(std::declval<TupleLike&>()) -> std::tuple_element_t<I, TupleLike>&
-//   - std::tuple_size_v<TupleLike> -> constexpr size_t
+//   - std::get<I>(std::declval<TupleLike&>()) constexpr -> std::tuple_element_t<I, TupleLike>&
+//   - std::tuple_size_v<TupleLike> constexpr -> size_t
 //
 // std::tuple, std::pair, and std::array define these overloads by default, but you can create
 // overloads for your own custom classes as necessary.
@@ -32,7 +32,7 @@ struct ItrTraitsImpl {
     using ValType = RefType;
 };
 
-// Builds an array of std::get accessors for the given type TupleLike.
+// Builds an array of std::get accessors for the given type: TupleLike.
 template <typename TupleLike>
 struct GetterImpl {
     static constexpr auto MakeGetters() {
@@ -47,7 +47,7 @@ struct GetterImpl {
     template <size_t... I>
     static constexpr GetterArray MakeGettersImpl(std::index_sequence<I...> _) {
         return {
-            +[](TupleLike& t) constexpr { return RefType{std::reference_wrapper(std::get<I>(t))}; }
+            +[](TupleLike& t) constexpr { return RefType{std::reference_wrapper{std::get<I>(t)}}; }
             ...  // Expands to one function pointer for each index: I.
         };
     }
