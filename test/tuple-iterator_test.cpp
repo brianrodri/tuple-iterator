@@ -8,42 +8,40 @@
 class TupleIteratorTest : public ::testing::Test {
   protected:
     using Tuple = std::tuple<int, std::vector<double>, std::string>;
-    using TupleIterator = tuple_ext::TupleIterator<Tuple>;
-    using TupleRange = tuple_ext::TupleRange<Tuple>;
+    using TupleItr = tuple_ext::TupleIterator<Tuple>;
+    using TupleRng = tuple_ext::TupleRange<Tuple>;
 
     Tuple tuple_{1, {1.61803, 2.71828, 3.14159}, "inf"};
-    TupleRange tuple_range_{tuple_};
+    TupleRng tuple_range_{tuple_};
 };
 
 TEST_F(TupleIteratorTest, SizeOfIteratorIsTwoPointers) {
-    const TupleIterator i;
+    const TupleItr i;
     EXPECT_EQ(sizeof(i), 2 * sizeof(void*));
 }
 
 TEST_F(TupleIteratorTest, CopyConstructibleConceptSatisfied) {
-    const TupleIterator i = tuple_range_.begin();
+    const TupleItr i = tuple_range_.begin();
+    TupleItr i_copy = i;
 
-    // { T a = b; } -> { a == b; }
-    TupleIterator i_copy = i;
     ASSERT_EQ(i_copy, i);
-
-    // { T(a) == a; }
-    EXPECT_EQ(TupleIterator{i}, i);
+    EXPECT_EQ(TupleItr{i}, i);
 }
 
 TEST_F(TupleIteratorTest, CopyAssignableConceptSatisfied) {
-    const TupleIterator i = tuple_range_.begin();
-    TupleIterator j;
+    const TupleItr i = tuple_range_.begin();
+    TupleItr j;
 
-    // { a = b; } -> { a == b }
     ASSERT_NE(j, i);
+
     j = i;
+
     EXPECT_EQ(j, i);
 }
 
 TEST_F(TupleIteratorTest, SwappableConceptSatisfied) {
-    TupleIterator i = tuple_range_.begin();
-    TupleIterator j = tuple_range_.end();
+    TupleItr i = tuple_range_.begin();
+    TupleItr j = tuple_range_.end();
     ASSERT_NE(i, j);
 
     using std::swap;
@@ -55,38 +53,38 @@ TEST_F(TupleIteratorTest, SwappableConceptSatisfied) {
 }
 
 TEST_F(TupleIteratorTest, IteratorConceptSatisfied) {
-    TupleIterator i = tuple_range_.begin();
+    using reference = typename std::iterator_traits<TupleItr>::reference;
 
-    using reference = typename std::iterator_traits<TupleIterator>::reference;
+    TupleItr i = tuple_range_.begin();
     EXPECT_TRUE((std::is_same_v<decltype(*i), reference>));
-    EXPECT_TRUE((std::is_same_v<decltype(++i), TupleIterator&>));
+    EXPECT_TRUE((std::is_same_v<decltype(++i), TupleItr&>));
 }
 
 TEST_F(TupleIteratorTest, DefaultConstructibleConceptSatisfied) {
-    const TupleIterator default_initialized_iter;
+    const TupleItr default_initialized_iter;
     EXPECT_EQ(default_initialized_iter, nullptr);
 
-    const TupleIterator value_initialized_iter{};
+    const TupleItr value_initialized_iter{};
     EXPECT_EQ(value_initialized_iter, nullptr);
 
-    EXPECT_EQ(TupleIterator(), nullptr);
-    EXPECT_EQ(TupleIterator{}, nullptr);
+    EXPECT_EQ(TupleItr(), nullptr);
+    EXPECT_EQ(TupleItr{}, nullptr);
 }
 
 TEST_F(TupleIteratorTest, CopyEqualityConceptSatisfied) {
-    TupleIterator i = tuple_range_.begin();
-    TupleIterator j = tuple_range_.begin();
+    TupleItr i = tuple_range_.begin();
+    TupleItr j = tuple_range_.begin();
 
     ASSERT_EQ(i, j);
     EXPECT_EQ(++i, ++j);
 }
 
 TEST_F(TupleIteratorTest, ForwardIteratorConceptSatisfied) {
-    TupleIterator i = tuple_range_.begin();
-    std::vector<TupleIterator> i_copies(3, i);
+    TupleItr i = tuple_range_.begin();
+    std::vector<TupleItr> i_copies(3, i);
 
     EXPECT_EQ(++i, std::next(tuple_range_.begin()));
-    for (const TupleIterator& j : i_copies) { EXPECT_EQ(j, tuple_range_.begin()); }
+    for (const TupleItr& j : i_copies) { EXPECT_EQ(j, tuple_range_.begin()); }
 
     i = tuple_range_.begin();
     EXPECT_EQ(i++, tuple_range_.begin());
@@ -96,11 +94,11 @@ TEST_F(TupleIteratorTest, ForwardIteratorConceptSatisfied) {
 }
 
 TEST_F(TupleIteratorTest, BidirectionalIteratorConceptSatisfied) {
-    TupleIterator i = tuple_range_.end();
-    std::vector<TupleIterator> i_copies(3, i);
+    TupleItr i = tuple_range_.end();
+    std::vector<TupleItr> i_copies(3, i);
 
     EXPECT_EQ(--i, std::prev(tuple_range_.end()));
-    for (const TupleIterator& j : i_copies) { EXPECT_EQ(j, tuple_range_.end()); }
+    for (const TupleItr& j : i_copies) { EXPECT_EQ(j, tuple_range_.end()); }
 
     i = tuple_range_.end();
     EXPECT_EQ(i--, tuple_range_.end());
@@ -112,9 +110,9 @@ TEST_F(TupleIteratorTest, BidirectionalIteratorConceptSatisfied) {
 TEST_F(TupleIteratorTest, RandomAccessIteratorConceptSatisfied) {
     // Test for addition
     {
-        TupleIterator i = tuple_range_.begin();
-        TupleIterator j = i + 2;
-        TupleIterator k = 2 + i;
+        TupleItr i = tuple_range_.begin();
+        TupleItr j = i + 2;
+        TupleItr k = 2 + i;
         i += 2;
         EXPECT_EQ(i, j);
         EXPECT_EQ(i, k);
@@ -122,8 +120,8 @@ TEST_F(TupleIteratorTest, RandomAccessIteratorConceptSatisfied) {
     }
     // Test for subtraction
     {
-        TupleIterator i = tuple_range_.end();
-        TupleIterator j = i - 2;
+        TupleItr i = tuple_range_.end();
+        TupleItr j = i - 2;
         i -= 2;
         EXPECT_EQ(i, j);
     }
@@ -133,6 +131,6 @@ TEST_F(TupleIteratorTest, RandomAccessIteratorConceptSatisfied) {
     }
     // Test for index-access
     {
-        TupleIterator::reference e = tuple_range_.begin()[2];
+        TupleItr::reference e = tuple_range_.begin()[2];
     }
 }
