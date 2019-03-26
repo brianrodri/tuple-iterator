@@ -86,7 +86,6 @@ class TupleIterator {
 
     constexpr reference operator*() { return *getter_itr_(*tuple_ptr_); }
     constexpr reference operator[](difference_type i) { return getter_itr_[i](*tuple_ptr_); }
-
     // NOTE: operator-> is not defined because there is no way to make it standards-compliant.
     //
     // The standard expects that values returned by operator-> may eventually be resolved by 1+
@@ -94,17 +93,17 @@ class TupleIterator {
     // that eventually, a call to std::visit *must be made*.
     //
     // For now, I've chosen to simply leave out the definition of operator-> while keeping the
-    // definition of a "pointer"-type, because it is required by std::distance.
-
-    // Returns the distance from the given iterator.
-    constexpr difference_type operator-(const TupleIterator& rhs) const {
-        return getter_itr_ - rhs.getter_itr_;
-    }
+    // definition of a "pointer"-type because it is required by std::distance.
 
     constexpr TupleIterator& operator++() { ++getter_itr_; return *this; }
     constexpr TupleIterator& operator--() { --getter_itr_; return *this; }
     constexpr TupleIterator& operator+=(difference_type n) { getter_itr_ += n; return *this; }
     constexpr TupleIterator& operator-=(difference_type n) { getter_itr_ -= n; return *this; }
+
+    // Returns the distance from the given iterator.
+    constexpr difference_type operator-(const TupleIterator& rhs) const {
+        return getter_itr_ - rhs.getter_itr_;
+    }
 
     // Returns whether this iterator is singular.
     constexpr bool operator==(std::nullptr_t rhs) const { return tuple_ptr_ == rhs; }
@@ -135,7 +134,7 @@ class TupleIterator {
     constexpr bool operator>=(const TupleIterator& rhs) const { return !(*this < rhs); }
 
   private:
-    // This constructor is called by TupleRange<T>.
+    // This constructor is called by: TupleRange<T>.
     constexpr TupleIterator(TupleLike& t, GetterItr i) : tuple_ptr_{&t}, getter_itr_{i} {};
 
     TupleLike* tuple_ptr_;
