@@ -11,7 +11,7 @@
 namespace tuple_ext {
 namespace detail {
 
-// Exposes types required by TupleIterator for standards-compliance.
+// Exposes types required by TupleIterator for standard-compliance.
 //
 // The types are derived from the given type parameter, which is assumed to be a "tuple-like"
 // structure. Specifically, `TupleLike` must satisfy the following:
@@ -34,7 +34,7 @@ struct ItrTraitsImpl {
 
 // Builds an array of std::get accessors for the given type: TupleLike.
 template <typename TupleLike>
-struct GetterImpl {
+struct GettersImpl {
     static constexpr auto MakeGetters() {
         return MakeGettersImpl(std::make_index_sequence<std::tuple_size_v<TupleLike>>());
     }
@@ -61,7 +61,7 @@ class TupleRange;
 
 template <typename TupleLike>
 class TupleIterator {
-    static constexpr const auto kGetters = detail::GetterImpl<TupleLike>::MakeGetters();
+    static constexpr const auto kGetters = detail::GettersImpl<TupleLike>::MakeGetters();
     using GetterItr = typename decltype(kGetters)::const_iterator;
 
   public:
