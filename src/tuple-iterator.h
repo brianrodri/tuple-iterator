@@ -14,8 +14,8 @@ namespace detail {
 // Exposes types required by TupleIterator for standards compliance.
 //
 // The types are derived from TupleLike, which is assumed to satisfy the following:
-//   - std::get<I>(std::declval<TupleLike&>()) constexpr -> std::tuple_element_t<I, TupleLike>&
-//   - std::tuple_size_v<TupleLike> constexpr -> size_t
+//   - constexpr auto std::get<I>(std::declval<TupleLike&>()) -> std::tuple_element_t<I, TupleLike>&
+//   - constexpr std::tuple_size<TupleLike>() -> size_t
 //
 // std::tuple, std::pair, and std::array define these overloads by default, but you can create
 // overloads for your own custom classes as necessary.
