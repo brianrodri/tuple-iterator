@@ -11,10 +11,9 @@
 namespace tuple_ext {
 namespace detail {
 
-// Exposes types required by TupleIterator for standard-compliance.
+// Exposes types required by TupleIterator for standards compliance.
 //
-// The types are derived from the given type parameter, which is assumed to be a "tuple-like"
-// structure. Specifically, `TupleLike` must satisfy the following:
+// The types are derived from TupleLike, which is assumed to satisfy the following:
 //   - std::get<I>(std::declval<TupleLike&>()) constexpr -> std::tuple_element_t<I, TupleLike>&
 //   - std::tuple_size_v<TupleLike> constexpr -> size_t
 //
