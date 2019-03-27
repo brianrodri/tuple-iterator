@@ -15,7 +15,7 @@ namespace detail {
 //
 // The types are derived from TupleLike, which is assumed to satisfy the following:
 //   - constexpr auto std::get<I>(std::declval<TupleLike&>()) -> std::tuple_element_t<I, TupleLike>&
-//   - constexpr std::tuple_size<TupleLike>() -> size_t
+//   - constexpr auto std::tuple_size<TupleLike>() -> size_t
 //
 // std::tuple, std::pair, and std::array define these overloads by default, but you can create
 // overloads for your own custom classes as necessary.
