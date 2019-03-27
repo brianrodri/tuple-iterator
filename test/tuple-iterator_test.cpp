@@ -15,11 +15,6 @@ class TupleIteratorTest : public ::testing::Test {
     TupleRng tuple_range_{tuple_};
 };
 
-TEST_F(TupleIteratorTest, SizeOfIteratorIsTwoPointers) {
-    const TupleItr i;
-    EXPECT_EQ(sizeof(i), 2 * sizeof(void*));
-}
-
 TEST_F(TupleIteratorTest, CopyConstructibleConceptSatisfied) {
     const TupleItr i = tuple_range_.begin();
     TupleItr i_copy = i;
