@@ -169,12 +169,15 @@ class TupleRange {
     static constexpr TupleItr begin(TupleLike& t) { return TupleRange{t}.begin(); }
     static constexpr TupleItr end(TupleLike& t) { return TupleRange{t}.end(); }
 
+    // Creates a wrapper which will call .get() on the std::reference_wrapper instances returned by
+    // TupleIterator before using std::visit on them.
     template <typename Function>
     static constexpr decltype(auto) MakeVisitor(Function&& f) {
+        // Recall: TupleIterators return a variant of references.
         using ValType = typename TupleItr::value_type;
-        return [f_=std::forward<Function>(f)](auto&&... vs) {
-            static_assert(std::conjunction_v<std::is_same<std::decay_t<decltype(vs)>, ValType>...>);
-            return std::visit(f_, std::forward<std::decay_t<decltype(vs)>>(vs)...);
+        return [f_=std::forward<Function>(f)](auto... vs) {
+            static_assert(std::conjunction_v<std::is_same<decltype(vs), ValType>...>);
+            return std::visit([&](auto& ref) { return f_(ref.get()); }, vs...);
         };
     }
 

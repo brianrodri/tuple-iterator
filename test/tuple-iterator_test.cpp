@@ -13,6 +13,11 @@ class TupleIteratorTest : public ::testing::Test {
 
     Tuple tuple_{1, {1.61803, 2.71828, 3.14159}, "inf"};
     TupleRng tuple_range_{tuple_};
+
+    template <typename T>
+    static constexpr auto IsA = TupleRng::MakeVisitor([](auto& arg) {
+        return std::is_same_v<std::decay_t<decltype(arg)>, T>;
+    });
 };
 
 TEST_F(TupleIteratorTest, CopyConstructibleConceptSatisfied) {
@@ -51,8 +56,8 @@ TEST_F(TupleIteratorTest, IteratorConceptSatisfied) {
     using reference = typename std::iterator_traits<TupleItr>::reference;
 
     TupleItr i = tuple_range_.begin();
-    EXPECT_TRUE((std::is_same_v<decltype(*i), reference>));
-    EXPECT_TRUE((std::is_same_v<decltype(++i), TupleItr&>));
+    EXPECT_TRUE(IsA<int>(*i));
+    EXPECT_TRUE(IsA<std::vector<double>>(*++i));
 }
 
 TEST_F(TupleIteratorTest, DefaultConstructibleConceptSatisfied) {
@@ -85,7 +90,9 @@ TEST_F(TupleIteratorTest, ForwardIteratorConceptSatisfied) {
     EXPECT_EQ(i++, tuple_range_.begin());
     EXPECT_EQ(i, std::next(tuple_range_.begin()));
 
-    // TODO: Add dereference tests.
+    i = tuple_range_.begin();
+    EXPECT_TRUE(IsA<int>(*i++));
+    EXPECT_TRUE(IsA<std::vector<double>>(*i));
 }
 
 TEST_F(TupleIteratorTest, BidirectionalIteratorConceptSatisfied) {
@@ -98,8 +105,7 @@ TEST_F(TupleIteratorTest, BidirectionalIteratorConceptSatisfied) {
     i = tuple_range_.end();
     EXPECT_EQ(i--, tuple_range_.end());
     EXPECT_EQ(i, std::prev(tuple_range_.end()));
-
-    // TODO: Add dereference tests.
+    EXPECT_TRUE(IsA<std::string>(*i));
 }
 
 TEST_F(TupleIteratorTest, RandomAccessIteratorConceptSatisfied) {
@@ -126,6 +132,9 @@ TEST_F(TupleIteratorTest, RandomAccessIteratorConceptSatisfied) {
     }
     // Test for index-access
     {
-        TupleItr::reference e = tuple_range_.begin()[2];
+        TupleItr i = tuple_range_.begin();
+        EXPECT_TRUE(IsA<int>(i[0]));
+        EXPECT_TRUE(IsA<std::vector<double>>(i[1]));
+        EXPECT_TRUE(IsA<std::string>(i[2]));
     }
 }
