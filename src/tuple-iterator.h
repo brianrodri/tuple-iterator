@@ -169,6 +169,15 @@ class TupleRange {
     static constexpr TupleItr begin(TupleLike& t) { return TupleRange{t}.begin(); }
     static constexpr TupleItr end(TupleLike& t) { return TupleRange{t}.end(); }
 
+    template <typename Function>
+    static constexpr decltype(auto) MakeVisitor(Function&& f) {
+        using ValType = typename TupleItr::value_type;
+        return [f_=std::forward<Function>(f)](auto&&... vs) {
+            static_assert(std::conjunction_v<std::is_same<std::decay_t<decltype(vs)>, ValType>...>);
+            return std::visit(f_, std::forward<std::decay_t<decltype(vs)>>(vs)...);
+        };
+    }
+
   private:
     TupleLike& tuple_ref_;
 };
