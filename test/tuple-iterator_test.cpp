@@ -13,6 +13,11 @@ class TupleIteratorTest : public ::testing::Test {
 
     Tuple tuple_{1, {1.61803, 2.71828, 3.14159}, "inf"};
     TupleRng tuple_range_{tuple_};
+
+    static constexpr const auto EqualVisitor =
+        TupleRng::MakeVisitor([](const auto& lhs, const auto& rhs) {
+            return false;
+        });
 };
 
 TEST_F(TupleIteratorTest, CopyConstructibleConceptSatisfied) {
@@ -86,6 +91,8 @@ TEST_F(TupleIteratorTest, ForwardIteratorConceptSatisfied) {
     EXPECT_EQ(i, std::next(tuple_range_.begin()));
 
     // TODO: Add dereference tests.
+    i = tuple_range_.begin();
+    EXPECT_TRUE(EqualVisitor(*i, *tuple_range_.begin()));
 }
 
 TEST_F(TupleIteratorTest, BidirectionalIteratorConceptSatisfied) {

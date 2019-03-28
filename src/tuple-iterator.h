@@ -23,12 +23,12 @@ template <typename TupleLike>
 struct ItrTraitsImpl {
   private:
     template <size_t... I>
-    static constexpr auto RefTypeImpl(std::index_sequence<I...> _) ->
+    static constexpr auto ValTypeImpl(std::index_sequence<I...> _) ->
         std::variant<std::reference_wrapper<std::tuple_element_t<I, TupleLike>>...>;
 
   public:
-    using RefType = decltype(RefTypeImpl(std::make_index_sequence<std::tuple_size_v<TupleLike>>()));
-    using ValType = RefType;
+    using ValType = decltype(ValTypeImpl(std::make_index_sequence<std::tuple_size_v<TupleLike>>()));
+    using RefType = ValType;
 };
 
 // Builds an array of std::get accessors for the given type: TupleLike.
