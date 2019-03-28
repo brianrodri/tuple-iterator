@@ -1,6 +1,7 @@
 add_executable(
     unit-tests
     tuple-iterator_test.cpp
+    stl-algorithms_test.cpp
     )
 
 target_link_libraries(

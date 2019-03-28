@@ -46,7 +46,9 @@ struct GettersImpl {
     template <size_t... I>
     static constexpr GetterArray MakeGettersImpl(std::index_sequence<I...> _) {
         return {
-            +[](TupleLike& t) constexpr { return RefType{std::reference_wrapper{std::get<I>(t)}}; }
+            +[](TupleLike& t) constexpr {
+                return RefType{std::in_place_index<I>, std::reference_wrapper{std::get<I>(t)}};
+            }
             ...  // Expands to one function pointer for each index: I.
         };
     }
@@ -84,7 +86,7 @@ class TupleIterator {
     constexpr TupleIterator& operator=(const TupleIterator& src) = default;
     constexpr TupleIterator& operator=(TupleIterator&& src) = default;
 
-    constexpr reference operator*() { return *getter_itr_(*tuple_ptr_); }
+    constexpr reference operator*() { return (*getter_itr_)(*tuple_ptr_); }
     constexpr reference operator[](difference_type i) { return getter_itr_[i](*tuple_ptr_); }
     // NOTE: operator-> is not defined because there is no way to make it standards-compliant.
     //
