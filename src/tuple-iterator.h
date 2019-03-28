@@ -173,7 +173,7 @@ class TupleRange {
     // TupleIterator.
     template <typename Function>
     static constexpr decltype(auto) MakeVisitor(Function&& f) {
-        // Recall: TupleIterators return a variant of references.
+        // Recall: TupleIterators return a variant of std::reference_wrappers.
         using ValType = typename TupleItr::value_type;
         return [f_=std::forward<Function>(f)](auto... vs) {
             static_assert(std::conjunction_v<std::is_same<decltype(vs), ValType>...>);
