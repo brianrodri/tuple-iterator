@@ -48,10 +48,10 @@ struct GettersImpl {
         return {GetterImpl<I>...};
     }
 
-	template <size_t I>
-	static constexpr RefType GetterImpl(TupleLike& t) {
-		return RefType{std::in_place_index<I>, std::reference_wrapper{std::get<I>(t)}};
-	}
+    template <size_t I>
+    static constexpr RefType GetterImpl(TupleLike& t) {
+        return RefType{std::in_place_index<I>, std::reference_wrapper{std::get<I>(t)}};
+    }
 };
 
 }  // namespace detail
@@ -147,19 +147,19 @@ class TupleIterator {
 
 template <typename TupleLike>
 constexpr bool operator==(std::nullptr_t lhs, const TupleIterator<TupleLike>& rhs) {
-	return rhs == lhs;
+    return rhs == lhs;
 }
 
 template <typename TupleLike>
 constexpr bool operator!=(std::nullptr_t lhs, const TupleIterator<TupleLike>& rhs) {
-	return rhs != lhs;
+    return rhs != lhs;
 }
 
 template <typename TupleLike>
 constexpr TupleIterator<TupleLike> operator+(
-		typename std::iterator_traits<TupleIterator<TupleLike>>::difference_type n,
-		const TupleIterator<TupleLike>& i) {
-	return i + n;
+        typename std::iterator_traits<TupleIterator<TupleLike>>::difference_type n,
+        const TupleIterator<TupleLike>& i) {
+    return i + n;
 }
 
 // Provides interface for creating tuple iterators.
@@ -186,10 +186,10 @@ class TupleRange {
         // NOTE: Dereferenced TupleIterators return a std::variant<std::reference_wrapper<T>...>.
         using ValType = typename std::iterator_traits<TupleIterator<TupleLike>>::value_type;
         return [f_=std::forward<Function>(f)](auto&&... vs) {
-            static_assert(std::conjunction_v<std::is_same<std::decay_t<decltype(vs)>, ValType>...>);
-
-            const auto visitor = [&](auto&& ref_wrapper) { return f_(ref_wrapper.get()); };
-            return std::visit(visitor, std::forward<std::decay_t<decltype(vs)>>(vs)...);
+            static_assert((std::is_same_v<std::decay_t<decltype(vs)>, ValType> && ...),
+                          "All arguments must have the same type as a dereferenced TupleIterator.");
+            return std::visit([&](auto&& ref_wrapper) { return f_(ref_wrapper.get()); },
+                              std::forward<std::decay_t<decltype(vs)>>(vs)...);
         };
     }
 
