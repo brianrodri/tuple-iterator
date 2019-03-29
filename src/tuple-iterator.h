@@ -88,7 +88,7 @@ class TupleIterator {
 
     constexpr reference operator*() { return (*getter_itr_)(*tuple_ptr_); }
     constexpr reference operator[](difference_type i) { return getter_itr_[i](*tuple_ptr_); }
-    // NOTE: operator-> is not defined because there is no way to make it standards-compliant.
+    // NOTE: operator-> is not defined because there is no way to make it standard compliant.
     //
     // The standard expects that values returned by operator-> may eventually be resolved by 1+
     // repeated applications. However, we can only return a std::variant of pointers. This implies
