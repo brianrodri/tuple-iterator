@@ -187,7 +187,8 @@ class TupleRange {
         using ValType = typename std::iterator_traits<TupleIterator<TupleLike>>::value_type;
         return [f_=std::forward<Function>(f)](auto&&... vs) {
             static_assert(std::conjunction_v<std::is_same<std::decay_t<decltype(vs)>, ValType>...>);
-            auto visitor = [&](auto&& ref_wrapper) { return f_(ref_wrapper.get()); };
+
+            const auto visitor = [&](auto&& ref_wrapper) { return f_(ref_wrapper.get()); };
             return std::visit(visitor, std::forward<std::decay_t<decltype(vs)>>(vs)...);
         };
     }
