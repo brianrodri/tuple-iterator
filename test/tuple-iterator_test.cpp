@@ -15,7 +15,7 @@ class TupleIteratorTest : public ::testing::Test {
     TupleRng tuple_range_{tuple_};
 
     template <typename T>
-    static constexpr auto IsA = TupleRng::MakeVisitor([](auto& arg) {
+    static constexpr auto IsA = TupleRng::MakeVisitor([](const auto& arg) {
         return std::is_same_v<std::decay_t<decltype(arg)>, T>;
     });
 };

@@ -177,7 +177,7 @@ class TupleRange {
         using ValType = typename TupleItr::value_type;
         return [f_=std::forward<Function>(f)](auto... vs) {
             static_assert(std::conjunction_v<std::is_same<decltype(vs), ValType>...>);
-            return std::visit([&](auto& ref) { return f_(ref.get()); }, vs...);
+            return std::visit([&](auto&& ref_wrapper) { return f_(ref_wrapper.get()); }, vs...);
         };
     }
 
